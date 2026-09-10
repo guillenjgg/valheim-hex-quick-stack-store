@@ -5,8 +5,6 @@ namespace HexQuickStackStorage
 {
     internal static class ContainerService
     {
-        private const float SearchRadius = 20f;
-
         internal static List<Container> GetNearbyContainers(Player player)
         {
             List<Container> containers = new List<Container>();
@@ -17,7 +15,7 @@ namespace HexQuickStackStorage
             }
 
             long playerId = Game.instance.GetPlayerProfile().GetPlayerID();
-            Collider[] colliders = Physics.OverlapSphere(player.transform.position, SearchRadius);
+            Collider[] colliders = Physics.OverlapSphere(player.transform.position, Plugin.SearchRadius);
             HashSet<Container> foundContainers = new HashSet<Container>();
 
             foreach (Collider collider in colliders)
