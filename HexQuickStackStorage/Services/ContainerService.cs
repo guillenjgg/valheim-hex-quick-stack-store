@@ -45,8 +45,13 @@ namespace HexQuickStackStorage
             return containers;
         }
 
-        private static bool IsPlayerOwnedContainer(Container container, long playerId)
+        internal static bool IsPlayerOwnedContainer(Container container, long playerId)
         {
+            if (container == null)
+            {
+                return false;
+            }
+
             Piece piece = container.GetComponent<Piece>();
 
             if (piece == null)

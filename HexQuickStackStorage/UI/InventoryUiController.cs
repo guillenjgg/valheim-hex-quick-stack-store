@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using HarmonyLib;
+using System.Collections.Generic;
+using System.Reflection;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +14,8 @@ namespace HexQuickStackStorage
 
         private const float ButtonSize = 36f;
         private const float ButtonSpacing = 4f;
+
+        private static readonly FieldInfo CurrentContainerField = AccessTools.Field(typeof(InventoryGui), "m_currentContainer");
 
         private static InventoryGui _inventoryGui;
         private static Button _sortButton;
@@ -172,15 +176,19 @@ namespace HexQuickStackStorage
 
         private static void OnSortClicked()
         {
-            Player player = Player.m_localPlayer;
+            InventorySortService.SortPlayerInventory();
 
-            if (player == null)
+            if (_inventoryGui == null)
             {
-                Plugin.Log.LogWarning("No local player found.");
                 return;
             }
 
-            InventorySortService.SortPlayerInventory();
+            Container container = CurrentContainerField?.GetValue(_inventoryGui) as Container;
+
+            if (container != null)
+            {
+                InventorySortService.SortContainer(container);
+            }
         }
 
         private static void OnQuickStackClicked()

@@ -30,6 +30,42 @@ namespace HexQuickStackStorage
             int vanillaHeight = GetVanillaInventoryHeight(player);
 
             Sort(inventory, vanillaHeight, true);
+
+            Plugin.Log.LogInfo($"Sorted {inventory.GetAllItems().Count} player inventory items.");
+        }
+
+        internal static void SortContainer(Container container)
+        {
+            if (container == null)
+            {
+                return;
+            }
+
+            Player player = Player.m_localPlayer;
+
+            if (player == null)
+            {
+                return;
+            }
+
+            long playerId = Game.instance.GetPlayerProfile().GetPlayerID();
+
+            if (!ContainerService.IsPlayerOwnedContainer(container, playerId))
+            {
+                Plugin.Log.LogInfo($"Skipped sorting non-player-owned container: {container.gameObject.name}");
+                return;
+            }
+
+            Inventory inventory = container.GetInventory();
+
+            if (inventory == null)
+            {
+                return;
+            }
+
+            Sort(inventory, inventory.GetHeight(), false);
+
+            Plugin.Log.LogInfo($"Sorted container: {container.gameObject.name}");
         }
 
         private static void Sort(Inventory inventory, int validHeight, bool preserveHotbar)
@@ -58,7 +94,7 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (!IsValidVanillaSlot(item.m_gridPos, width, validHeight))
+                if (!IsValidSlot(item.m_gridPos, width, validHeight))
                 {
                     continue;
                 }
@@ -98,8 +134,6 @@ namespace HexQuickStackStorage
             }
 
             ChangedMethod?.Invoke(inventory, ChangedArguments);
-
-            Plugin.Log.LogInfo($"Sorted {itemsToSort.Count} items across {width * validHeight} vanilla inventory slots.");
         }
 
         private static int GetVanillaInventoryHeight(Player player)
@@ -112,7 +146,7 @@ namespace HexQuickStackStorage
             return 4;
         }
 
-        private static bool IsValidVanillaSlot(Vector2i position, int width, int height)
+        private static bool IsValidSlot(Vector2i position, int width, int height)
         {
             return position.x >= 0 && position.x < width && position.y >= 0 && position.y < height;
         }
