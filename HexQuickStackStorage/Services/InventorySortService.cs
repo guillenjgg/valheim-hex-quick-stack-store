@@ -9,7 +9,7 @@ namespace HexQuickStackStorage
     internal static class InventorySortService
     {
         private static readonly MethodInfo ChangedMethod = AccessTools.Method(typeof(Inventory), "Changed", new[] { typeof(bool), typeof(bool) });
-        private static readonly object[] ChangedArguments = { true, true };
+        private static readonly object[] ChangedArguments = { false, false };
 
         internal static void SortPlayerInventory()
         {
