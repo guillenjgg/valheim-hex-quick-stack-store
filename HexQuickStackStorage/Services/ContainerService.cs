@@ -50,7 +50,7 @@ namespace HexQuickStackStorage
                 return false;
             }
 
-            Piece piece = container.GetComponent<Piece>();
+            Piece piece = container.GetComponentInParent<Piece>();
 
             if (piece == null)
             {

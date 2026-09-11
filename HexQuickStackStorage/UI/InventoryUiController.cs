@@ -33,8 +33,6 @@ namespace HexQuickStackStorage
 
             _inventoryGui = inventoryGui;
 
-            LogPlayerInventoryDimensions();
-            LogNativeButtonDimensions();
             CreateButtons();
         }
 
@@ -385,36 +383,6 @@ namespace HexQuickStackStorage
             }
 
             TrashService.DeleteMarkedItems(player);
-        }
-
-        private static void LogPlayerInventoryDimensions()
-        {
-            if (_inventoryGui == null || _inventoryGui.m_player == null)
-            {
-                return;
-            }
-
-            RectTransform rectTransform = _inventoryGui.m_player.GetComponent<RectTransform>();
-
-            if (rectTransform == null)
-            {
-                return;
-            }
-        }
-
-        private static void LogNativeButtonDimensions()
-        {
-            if (_inventoryGui == null || _inventoryGui.m_takeAllButton == null)
-            {
-                return;
-            }
-
-            RectTransform rectTransform = _inventoryGui.m_takeAllButton.GetComponent<RectTransform>();
-
-            if (rectTransform == null)
-            {
-                return;
-            }
         }
     }
 }

@@ -122,7 +122,6 @@ namespace HexQuickStackStorage
             }
 
             List<ItemDrop.ItemData> items = new List<ItemDrop.ItemData>(inventory.GetAllItems());
-            int deletedStacks = 0;
             bool protectedItemSkipped = false;
 
             foreach (ItemDrop.ItemData item in items)
@@ -146,11 +145,6 @@ namespace HexQuickStackStorage
                 {
                     protectedItemSkipped = true;
                     continue;
-                }
-
-                if (inventory.RemoveItem(item))
-                {
-                    deletedStacks++;
                 }
             }
 

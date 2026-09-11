@@ -21,7 +21,6 @@ namespace HexQuickStackStorage
 
             int vanillaHeight = GetVanillaInventoryHeight(player);
             List<Container> containers = ContainerService.GetNearbyContainers(player);
-            int beforeCount = playerInventory.CountItems(null, -1, true);
 
             foreach (Container container in containers)
             {
@@ -39,9 +38,6 @@ namespace HexQuickStackStorage
 
                 QuickStackIntoContainer(player, playerInventory, containerInventory, vanillaHeight);
             }
-
-            int afterCount = playerInventory.CountItems(null, -1, true);
-            int movedCount = beforeCount - afterCount;
         }
 
         private static void QuickStackIntoContainer(Player player, Inventory playerInventory, Inventory containerInventory, int vanillaHeight)
