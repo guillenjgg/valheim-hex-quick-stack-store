@@ -30,8 +30,6 @@ namespace HexQuickStackStorage
             int vanillaHeight = GetVanillaInventoryHeight(player);
 
             Sort(inventory, vanillaHeight, true);
-
-            Plugin.Log.LogInfo($"Sorted {inventory.GetAllItems().Count} player inventory items.");
         }
 
         internal static void SortContainer(Container container)
@@ -52,7 +50,6 @@ namespace HexQuickStackStorage
 
             if (!ContainerService.IsPlayerOwnedContainer(container, playerId))
             {
-                Plugin.Log.LogInfo($"Skipped sorting non-player-owned container: {container.gameObject.name}");
                 return;
             }
 
@@ -64,8 +61,6 @@ namespace HexQuickStackStorage
             }
 
             Sort(inventory, inventory.GetHeight(), false);
-
-            Plugin.Log.LogInfo($"Sorted container: {container.gameObject.name}");
         }
 
         private static void Sort(Inventory inventory, int validHeight, bool preserveHotbar)

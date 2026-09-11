@@ -1,5 +1,5 @@
 ﻿using HarmonyLib;
-using System.Collections.Generic;
+using System;
 using System.Reflection;
 using TMPro;
 using UnityEngine;
@@ -11,18 +11,26 @@ namespace HexQuickStackStorage
     {
         private const string SortButtonName = "HexSortButton";
         private const string QuickStackButtonName = "HexQuickStackButton";
+        private const string TrashButtonName = "HexTrashButton";
 
         private const float ButtonSize = 36f;
         private const float ButtonSpacing = 4f;
+        private const float TrashIconSize = 32f;
+        private const float TrashIconXOffset = 4f;
+        private const float TrashIconYOffset = 0f;
 
         private static readonly FieldInfo CurrentContainerField = AccessTools.Field(typeof(InventoryGui), "m_currentContainer");
+        private static readonly FieldInfo DragItemField = AccessTools.Field(typeof(InventoryGui), "m_dragItem");
 
         private static InventoryGui _inventoryGui;
-        private static Button _sortButton;
-        private static Button _quickStackButton;
 
         internal static void Initialize(InventoryGui inventoryGui)
         {
+            if (inventoryGui == null)
+            {
+                return;
+            }
+
             _inventoryGui = inventoryGui;
 
             LogPlayerInventoryDimensions();
@@ -32,45 +40,19 @@ namespace HexQuickStackStorage
 
         private static void CreateButtons()
         {
-            if (_inventoryGui == null)
+            if (_inventoryGui == null || _inventoryGui.m_player == null || _inventoryGui.m_takeAllButton == null)
             {
                 return;
             }
 
             Button nativeButton = _inventoryGui.m_takeAllButton;
 
-            if (nativeButton == null)
-            {
-                Plugin.Log.LogWarning("Could not find Valheim Take All button.");
-                return;
-            }
-
-            _quickStackButton = CreateButton(
-                nativeButton,
-                QuickStackButtonName,
-                "Q",
-                1,
-                OnQuickStackClicked
-            );
-
-            _sortButton = CreateButton(
-                nativeButton,
-                SortButtonName,
-                "S",
-                0,
-                OnSortClicked
-            );
-
-            Plugin.Log.LogInfo("Inventory action buttons created.");
+            CreateActionButton(nativeButton, SortButtonName, "S", 0, OnSortClicked);
+            CreateActionButton(nativeButton, QuickStackButtonName, "Q", 1, OnQuickStackClicked);
+            CreateTrashButton(OnTrashClicked);
         }
 
-        private static Button CreateButton(
-            Button template,
-            string buttonName,
-            string text,
-            int index,
-            UnityEngine.Events.UnityAction onClick
-        )
+        private static Button CreateActionButton(Button template, string buttonName, string text, int index, UnityEngine.Events.UnityAction onClick)
         {
             Transform existing = _inventoryGui.m_player.transform.Find(buttonName);
 
@@ -79,22 +61,14 @@ namespace HexQuickStackStorage
                 return existing.GetComponent<Button>();
             }
 
-            GameObject buttonObject = Object.Instantiate(
-                template.gameObject,
-                _inventoryGui.m_player.transform
-            );
-
+            GameObject buttonObject = UnityEngine.Object.Instantiate(template.gameObject, _inventoryGui.m_player.transform);
             buttonObject.name = buttonName;
 
             Button button = buttonObject.GetComponent<Button>();
 
             if (button == null)
             {
-                Plugin.Log.LogWarning(
-                    $"{buttonName} does not contain a Button component."
-                );
-
-                Object.Destroy(buttonObject);
+                UnityEngine.Object.Destroy(buttonObject);
                 return null;
             }
 
@@ -102,12 +76,207 @@ namespace HexQuickStackStorage
             button.onClick.AddListener(onClick);
 
             SetButtonText(buttonObject, text);
-            StyleButton(buttonObject);
-            PositionButton(buttonObject, index);
+            StyleActionButton(buttonObject);
+            PositionActionButton(buttonObject, index);
 
             buttonObject.SetActive(true);
 
             return button;
+        }
+
+        private static Button CreateTrashButton(UnityEngine.Events.UnityAction onClick)
+        {
+            Transform existing = FindChildRecursive(_inventoryGui.transform, TrashButtonName);
+
+            if (existing != null)
+            {
+                return existing.GetComponent<Button>();
+            }
+
+            RectTransform armorTab = FindStatusTab("armor");
+            RectTransform weightTab = FindStatusTab("weight");
+
+            if (armorTab == null || weightTab == null)
+            {
+                return null;
+            }
+
+            GameObject trashObject = UnityEngine.Object.Instantiate(weightTab.gameObject, weightTab.parent);
+            trashObject.name = TrashButtonName;
+
+            RectTransform trashRect = trashObject.GetComponent<RectTransform>();
+
+            Transform weightIcon = trashObject.transform.Find("weight_icon");
+            Transform weightText = trashObject.transform.Find("weight_text");
+
+            if (weightText != null)
+            {
+                weightText.gameObject.SetActive(false);
+            }
+
+            if (weightIcon != null)
+            {
+                weightIcon.gameObject.SetActive(false);
+            }
+
+            CreateTrashIcon(trashObject.transform);
+
+            Button button = trashObject.GetComponent<Button>();
+
+            if (button == null)
+            {
+                button = trashObject.AddComponent<Button>();
+            }
+
+            Image rootImage = trashObject.GetComponent<Image>();
+
+            if (rootImage != null)
+            {
+                button.targetGraphic = rootImage;
+            }
+
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(onClick);
+
+            PositionTrashButton(trashRect, armorTab, weightTab);
+
+            int nativeSiblingIndex = Mathf.Min(armorTab.GetSiblingIndex(), weightTab.GetSiblingIndex());
+            trashRect.SetSiblingIndex(nativeSiblingIndex);
+
+            trashObject.SetActive(true);
+
+            return button;
+        }
+
+        private static void CreateTrashIcon(Transform parent)
+        {
+            GameObject iconRoot = new GameObject("TrashIcon", typeof(RectTransform));
+            RectTransform iconRootRect = iconRoot.GetComponent<RectTransform>();
+
+            iconRootRect.SetParent(parent, false);
+            iconRootRect.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRootRect.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRootRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRootRect.sizeDelta = new Vector2(TrashIconSize, TrashIconSize);
+            iconRootRect.anchoredPosition = new Vector2(TrashIconXOffset, TrashIconYOffset);
+
+            GameObject body = CreateIconPart(iconRoot.transform, "Body");
+            RectTransform bodyRect = body.GetComponent<RectTransform>();
+
+            bodyRect.anchorMin = new Vector2(0.20f, 0.10f);
+            bodyRect.anchorMax = new Vector2(0.80f, 0.70f);
+            bodyRect.offsetMin = Vector2.zero;
+            bodyRect.offsetMax = Vector2.zero;
+
+            GameObject lid = CreateIconPart(iconRoot.transform, "Lid");
+            RectTransform lidRect = lid.GetComponent<RectTransform>();
+
+            lidRect.anchorMin = new Vector2(0.10f, 0.74f);
+            lidRect.anchorMax = new Vector2(0.90f, 0.84f);
+            lidRect.offsetMin = Vector2.zero;
+            lidRect.offsetMax = Vector2.zero;
+
+            GameObject handle = CreateIconPart(iconRoot.transform, "Handle");
+            RectTransform handleRect = handle.GetComponent<RectTransform>();
+
+            handleRect.anchorMin = new Vector2(0.36f, 0.85f);
+            handleRect.anchorMax = new Vector2(0.64f, 0.96f);
+            handleRect.offsetMin = Vector2.zero;
+            handleRect.offsetMax = Vector2.zero;
+
+            CreateTrashSlot(iconRoot.transform, 0.35f);
+            CreateTrashSlot(iconRoot.transform, 0.50f);
+            CreateTrashSlot(iconRoot.transform, 0.65f);
+        }
+
+        private static GameObject CreateIconPart(Transform parent, string name)
+        {
+            GameObject part = new GameObject(name, typeof(RectTransform), typeof(Image));
+            RectTransform rect = part.GetComponent<RectTransform>();
+
+            rect.SetParent(parent, false);
+
+            Image image = part.GetComponent<Image>();
+            image.color = new Color(0.72f, 0.72f, 0.72f, 1f);
+            image.raycastTarget = false;
+
+            return part;
+        }
+
+        private static void CreateTrashSlot(Transform parent, float x)
+        {
+            GameObject slot = new GameObject("Slot", typeof(RectTransform), typeof(Image));
+            RectTransform rect = slot.GetComponent<RectTransform>();
+
+            rect.SetParent(parent, false);
+            rect.anchorMin = new Vector2(x, 0.18f);
+            rect.anchorMax = new Vector2(x, 0.60f);
+            rect.sizeDelta = new Vector2(2f, 0f);
+
+            Image image = slot.GetComponent<Image>();
+            image.color = new Color(0.20f, 0.20f, 0.20f, 1f);
+            image.raycastTarget = false;
+        }
+
+        private static void PositionTrashButton(RectTransform trashRect, RectTransform armorRect, RectTransform weightRect)
+        {
+            if (trashRect == null || armorRect == null || weightRect == null)
+            {
+                return;
+            }
+
+            trashRect.anchorMin = weightRect.anchorMin;
+            trashRect.anchorMax = weightRect.anchorMax;
+            trashRect.pivot = weightRect.pivot;
+            trashRect.sizeDelta = weightRect.sizeDelta;
+
+            Vector3 middleWorldPosition = (armorRect.position + weightRect.position) * 0.5f;
+            trashRect.position = middleWorldPosition;
+        }
+
+        private static RectTransform FindStatusTab(string namePart)
+        {
+            RectTransform[] rectTransforms = _inventoryGui.GetComponentsInChildren<RectTransform>(true);
+
+            foreach (RectTransform rectTransform in rectTransforms)
+            {
+                if (rectTransform == null)
+                {
+                    continue;
+                }
+
+                if (rectTransform.name.IndexOf(namePart, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return rectTransform;
+                }
+            }
+
+            return null;
+        }
+
+        private static Transform FindChildRecursive(Transform parent, string childName)
+        {
+            if (parent == null)
+            {
+                return null;
+            }
+
+            foreach (Transform child in parent)
+            {
+                if (child.name == childName)
+                {
+                    return child;
+                }
+
+                Transform result = FindChildRecursive(child, childName);
+
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
 
         private static void SetButtonText(GameObject buttonObject, string text)
@@ -130,7 +299,7 @@ namespace HexQuickStackStorage
             }
         }
 
-        private static void StyleButton(GameObject buttonObject)
+        private static void StyleActionButton(GameObject buttonObject)
         {
             RectTransform rectTransform = buttonObject.GetComponent<RectTransform>();
 
@@ -139,10 +308,7 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            rectTransform.sizeDelta = new Vector2(
-                ButtonSize,
-                ButtonSize
-            );
+            rectTransform.sizeDelta = new Vector2(ButtonSize, ButtonSize);
 
             Image image = buttonObject.GetComponent<Image>();
 
@@ -152,7 +318,7 @@ namespace HexQuickStackStorage
             }
         }
 
-        private static void PositionButton(GameObject buttonObject, int index)
+        private static void PositionActionButton(GameObject buttonObject, int index)
         {
             RectTransform rectTransform = buttonObject.GetComponent<RectTransform>();
             RectTransform playerRectTransform = _inventoryGui.m_player.GetComponent<RectTransform>();
@@ -170,8 +336,6 @@ namespace HexQuickStackStorage
             float y = -playerRectTransform.rect.height + ButtonSize;
 
             rectTransform.anchoredPosition = new Vector2(x, y);
-
-            Plugin.Log.LogInfo($"{buttonObject.name} positioned at x={x:0.0}, y={y:0.0}");
         }
 
         private static void OnSortClicked()
@@ -197,18 +361,36 @@ namespace HexQuickStackStorage
 
             if (player == null)
             {
-                Plugin.Log.LogWarning("No local player found.");
                 return;
             }
 
             QuickStackService.QuickStack(player);
         }
 
+        private static void OnTrashClicked()
+        {
+            Player player = Player.m_localPlayer;
+
+            if (player == null || _inventoryGui == null)
+            {
+                return;
+            }
+
+            ItemDrop.ItemData dragItem = DragItemField?.GetValue(_inventoryGui) as ItemDrop.ItemData;
+
+            if (dragItem != null)
+            {
+                TrashService.DeleteDraggedItem(_inventoryGui, player);
+                return;
+            }
+
+            TrashService.DeleteMarkedItems(player);
+        }
+
         private static void LogPlayerInventoryDimensions()
         {
-            if (_inventoryGui?.m_player == null)
+            if (_inventoryGui == null || _inventoryGui.m_player == null)
             {
-                Plugin.Log.LogWarning("Player inventory UI was not found.");
                 return;
             }
 
@@ -216,26 +398,14 @@ namespace HexQuickStackStorage
 
             if (rectTransform == null)
             {
-                Plugin.Log.LogWarning("Player inventory does not have a RectTransform.");
                 return;
             }
-
-            Rect rect = rectTransform.rect;
-
-            Plugin.Log.LogInfo($"Player Inventory UI:");
-            Plugin.Log.LogInfo($"  Size: {rect.width:0.0} x {rect.height:0.0}");
-            Plugin.Log.LogInfo($"  Rect: x={rect.x:0.0}, y={rect.y:0.0}, w={rect.width:0.0}, h={rect.height:0.0}");
-            Plugin.Log.LogInfo($"  Anchored Position: x={rectTransform.anchoredPosition.x:0.0}, y={rectTransform.anchoredPosition.y:0.0}");
-            Plugin.Log.LogInfo($"  Pivot: x={rectTransform.pivot.x:0.00}, y={rectTransform.pivot.y:0.00}");
-            Plugin.Log.LogInfo($"  Anchor Min: x={rectTransform.anchorMin.x:0.00}, y={rectTransform.anchorMin.y:0.00}");
-            Plugin.Log.LogInfo($"  Anchor Max: x={rectTransform.anchorMax.x:0.00}, y={rectTransform.anchorMax.y:0.00}");
         }
 
         private static void LogNativeButtonDimensions()
         {
-            if (_inventoryGui?.m_takeAllButton == null)
+            if (_inventoryGui == null || _inventoryGui.m_takeAllButton == null)
             {
-                Plugin.Log.LogWarning("Valheim Take All button was not found.");
                 return;
             }
 
@@ -243,20 +413,8 @@ namespace HexQuickStackStorage
 
             if (rectTransform == null)
             {
-                Plugin.Log.LogWarning("Valheim Take All button does not have a RectTransform.");
                 return;
             }
-
-            Rect rect = rectTransform.rect;
-
-            Plugin.Log.LogInfo("Vanilla Take All Button:");
-            Plugin.Log.LogInfo($"  Name: {_inventoryGui.m_takeAllButton.name}");
-            Plugin.Log.LogInfo($"  Size: {rect.width:0.0} x {rect.height:0.0}");
-            Plugin.Log.LogInfo($"  Size Delta: x={rectTransform.sizeDelta.x:0.0}, y={rectTransform.sizeDelta.y:0.0}");
-            Plugin.Log.LogInfo($"  Anchored Position: x={rectTransform.anchoredPosition.x:0.0}, y={rectTransform.anchoredPosition.y:0.0}");
-            Plugin.Log.LogInfo($"  Pivot: x={rectTransform.pivot.x:0.00}, y={rectTransform.pivot.y:0.00}");
-            Plugin.Log.LogInfo($"  Anchor Min: x={rectTransform.anchorMin.x:0.00}, y={rectTransform.anchorMin.y:0.00}");
-            Plugin.Log.LogInfo($"  Anchor Max: x={rectTransform.anchorMax.x:0.00}, y={rectTransform.anchorMax.y:0.00}");
         }
     }
 }

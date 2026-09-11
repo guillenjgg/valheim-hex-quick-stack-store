@@ -17,15 +17,15 @@ namespace HexQuickStackStorage
         private const string PluginName = "HexQuickStackStorage";
         private const string PluginVersion = "1.0.0";
 
+        internal static Plugin Instance { get; private set; }
+        internal static ManualLogSource Log { get; private set; }
+
         private ConfigEntry<float> _searchRadius;
         private ConfigEntry<KeyboardShortcut> _quickStackShortcut;
         private Harmony _harmonyInstance;
 
         internal static float SearchRadius => Instance?._searchRadius != null ? Instance._searchRadius.Value : 25f;
         internal static KeyboardShortcut QuickStackShortcut => Instance?._quickStackShortcut != null ? Instance._quickStackShortcut.Value : new KeyboardShortcut(KeyCode.P);
-
-        internal static ManualLogSource Log;
-        internal static Plugin Instance;
 
         private void Awake()
         {
@@ -38,13 +38,18 @@ namespace HexQuickStackStorage
                 25f,
                 new ConfigDescription(
                     "The radius in which to search for nearby containers when quick stacking.",
-                    new AcceptableValueRange<float>(5f, 150f)));
+                    new AcceptableValueRange<float>(5f, 150f)
+                )
+            );
 
             _quickStackShortcut = Config.Bind(
                 "General",
                 "QuickStackShortcut",
                 new KeyboardShortcut(KeyCode.P),
-                "Keyboard shortcut used to quick stack nearby containers.");
+                "Keyboard shortcut used to quick stack nearby containers."
+            );
+
+            TrashService.Initialize();
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             _harmonyInstance = new Harmony(PluginGuid);
@@ -77,12 +82,11 @@ namespace HexQuickStackStorage
 
         private void OnDestroy()
         {
-            Log.LogInfo($"{PluginName} v{PluginVersion} unloaded.");
-
             _harmonyInstance?.UnpatchSelf();
-            _harmonyInstance = null;
+
+            Log?.LogInfo($"{PluginName} v{PluginVersion} unloaded.");
+
             Instance = null;
-            Log = null;
         }
 
         private static bool IsTypingInInputField()

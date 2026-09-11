@@ -42,8 +42,6 @@ namespace HexQuickStackStorage
 
             int afterCount = playerInventory.CountItems(null, -1, true);
             int movedCount = beforeCount - afterCount;
-
-            Plugin.Log.LogInfo($"Quick stacked {movedCount} items from vanilla inventory.");
         }
 
         private static void QuickStackIntoContainer(Player player, Inventory playerInventory, Inventory containerInventory, int vanillaHeight)
@@ -58,6 +56,11 @@ namespace HexQuickStackStorage
                 }
 
                 if (item.m_gridPos.y < 0 || item.m_gridPos.y >= vanillaHeight)
+                {
+                    continue;
+                }
+
+                if (item.m_gridPos.y == 0)
                 {
                     continue;
                 }
