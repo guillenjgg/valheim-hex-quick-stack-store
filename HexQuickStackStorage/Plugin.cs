@@ -107,17 +107,22 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            if (_modifierValidationMessagePending)
-            {
-                ShowModifierValidationMessage(player);
-            }
-
-            if (IsTypingInInputField())
+            if (!QuickStackShortcut.IsDown())
             {
                 return;
             }
 
-            if (!QuickStackShortcut.IsDown())
+            if (global::Console.IsVisible())
+            {
+                return;
+            }
+
+            if (TextInput.IsVisible())
+            {
+                return;
+            }
+
+            if (Menu.IsVisible())
             {
                 return;
             }

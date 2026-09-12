@@ -144,22 +144,22 @@ namespace HexQuickStackStorage
 
         private static void ConsolidateStacks(Inventory inventory, List<ItemDrop.ItemData> items)
         {
-            for (int targetIndex = 0; targetIndex < items.Count; targetIndex++)
+            for (int i = 0; i < items.Count; i++)
             {
-                ItemDrop.ItemData targetItem = items[targetIndex];
+                ItemDrop.ItemData targetItem = items[i];
 
                 if (targetItem == null || targetItem.m_shared == null || targetItem.m_shared.m_maxStackSize <= 1)
                 {
                     continue;
                 }
 
-                for (int sourceIndex = targetIndex + 1; sourceIndex < items.Count;)
+                for (int j = i + 1; j < items.Count;)
                 {
-                    ItemDrop.ItemData sourceItem = items[sourceIndex];
+                    ItemDrop.ItemData sourceItem = items[j];
 
                     if (!CanStackTogether(targetItem, sourceItem))
                     {
-                        sourceIndex++;
+                        j++;
                         continue;
                     }
 
@@ -178,11 +178,11 @@ namespace HexQuickStackStorage
                     if (sourceItem.m_stack <= 0)
                     {
                         inventory.RemoveItem(sourceItem);
-                        items.RemoveAt(sourceIndex);
+                        items.RemoveAt(j);
                         continue;
                     }
 
-                    sourceIndex++;
+                    j++;
                 }
             }
         }
