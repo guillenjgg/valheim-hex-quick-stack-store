@@ -15,17 +15,24 @@ namespace HexQuickStackStorage
     {
         private const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.0.1";
+        private const string PluginVersion = "1.1.0";
 
         internal static Plugin Instance { get; private set; }
         internal static ManualLogSource Log { get; private set; }
 
         private ConfigEntry<float> _searchRadius;
         private ConfigEntry<KeyboardShortcut> _quickStackShortcut;
+        private ConfigEntry<KeyboardShortcut> _trashShortcut;
+        private ConfigEntry<KeyboardShortcut> _favoriteShortcut;
+        private ConfigEntry<bool> _enableChestAutoSorting;
+
         private Harmony _harmonyInstance;
 
         internal static float SearchRadius => Instance?._searchRadius != null ? Instance._searchRadius.Value : 25f;
         internal static KeyboardShortcut QuickStackShortcut => Instance?._quickStackShortcut != null ? Instance._quickStackShortcut.Value : new KeyboardShortcut(KeyCode.P);
+        internal static KeyboardShortcut TrashShortcut => Instance?._trashShortcut != null ? Instance._trashShortcut.Value : new KeyboardShortcut(KeyCode.Mouse1, KeyCode.LeftShift);
+        internal static KeyboardShortcut FavoriteShortcut => Instance?._favoriteShortcut != null ? Instance._favoriteShortcut.Value : new KeyboardShortcut(KeyCode.Mouse0, KeyCode.LeftShift);
+        internal static bool EnableChestAutoSorting => Instance?._enableChestAutoSorting != null && Instance._enableChestAutoSorting.Value;
 
         private void Awake()
         {
@@ -33,7 +40,7 @@ namespace HexQuickStackStorage
             Log = Logger;
 
             _searchRadius = Config.Bind(
-                "General",
+                "Chests",
                 "SearchRadius",
                 25f,
                 new ConfigDescription(
@@ -43,10 +50,31 @@ namespace HexQuickStackStorage
             );
 
             _quickStackShortcut = Config.Bind(
-                "General",
+                "Chests",
                 "QuickStackShortcut",
                 new KeyboardShortcut(KeyCode.P),
                 "Keyboard shortcut used to quick stack nearby containers."
+            );
+
+            _trashShortcut = Config.Bind(
+                "Inventory",
+                "TrashShortcut",
+                new KeyboardShortcut(KeyCode.Mouse1, KeyCode.LeftShift),
+                "Keyboard shortcut used to mark or unmark an inventory item as trash."
+            );
+
+            _favoriteShortcut = Config.Bind(
+                "Inventory",
+                "FavoriteShortcut",
+                new KeyboardShortcut(KeyCode.Mouse0, KeyCode.LeftShift),
+                "Keyboard shortcut used to favorite or unfavorite an inventory item."
+            );
+
+            _enableChestAutoSorting = Config.Bind(
+                "Chests",
+                "EnableChestAutoSorting",
+                false,
+                "Automatically sort a chest when it is opened."
             );
 
             TrashService.Initialize();
