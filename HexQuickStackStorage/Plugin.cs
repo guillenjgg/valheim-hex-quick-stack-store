@@ -89,6 +89,7 @@ namespace HexQuickStackStorage
             ValidateModifierKeys();
 
             TrashService.Initialize();
+            FavoriteService.Initialize();
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             _harmonyInstance = new Harmony(PluginGuid);

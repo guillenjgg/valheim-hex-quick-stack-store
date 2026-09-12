@@ -59,6 +59,10 @@ namespace HexQuickStackStorage
             {
                 JunkItemNames.Remove(itemName);
             }
+            else
+            {
+                FavoriteService.Unfavorite(item);
+            }
 
             SaveJunkItems();
         }
@@ -166,6 +170,19 @@ namespace HexQuickStackStorage
             int vanillaHeight = GetVanillaInventoryHeight(player);
 
             return item.m_gridPos.y >= 0 && item.m_gridPos.y < vanillaHeight;
+        }
+
+        internal static void Unmark(ItemDrop.ItemData item)
+        {
+            if (item == null || item.m_shared == null)
+            {
+                return;
+            }
+
+            if (JunkItemNames.Remove(item.m_shared.m_name))
+            {
+                SaveJunkItems();
+            }
         }
 
         private static bool CanDeleteItem(ItemDrop.ItemData item)

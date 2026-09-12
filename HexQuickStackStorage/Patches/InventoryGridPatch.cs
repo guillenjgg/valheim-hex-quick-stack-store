@@ -30,15 +30,27 @@ namespace HexQuickStackStorage.Patches
             if (ZInput.GetKey(Plugin.TrashModifierKey, true))
             {
                 TrashService.ToggleMarked(player, item);
-                UI.TrashBorderRenderer.Refresh(grid);
+
+                UI.InventoryBorderRenderer.Refresh(
+                    grid,
+                    "HexTrashBorder",
+                    Color.red,
+                    TrashService.IsMarked
+                );
 
                 return false;
             }
 
             if (ZInput.GetKey(Plugin.FavoriteModifierKey, true))
             {
-                // FavoriteService.ToggleFavorite(player, item);
-                // UI.FavoriteBorderRenderer.Refresh(grid);
+                FavoriteService.ToggleFavorite(player, item);
+
+                UI.InventoryBorderRenderer.Refresh(
+                    grid,
+                    "HexFavoriteBorder",
+                    new Color(1f, 0.75f, 0f),
+                    FavoriteService.IsFavorite
+                );
 
                 return false;
             }
@@ -50,9 +62,19 @@ namespace HexQuickStackStorage.Patches
         [HarmonyPostfix]
         private static void UpdateGuiPostfix(InventoryGrid __instance)
         {
-            UI.TrashBorderRenderer.Refresh(__instance);
+            UI.InventoryBorderRenderer.Refresh(
+                __instance,
+                "HexTrashBorder",
+                Color.red,
+                TrashService.IsMarked
+            );
 
-            // UI.FavoriteBorderRenderer.Refresh(__instance);
+            UI.InventoryBorderRenderer.Refresh(
+                __instance,
+                "HexFavoriteBorder",
+                new Color(1f, 0.75f, 0f),
+                FavoriteService.IsFavorite
+            );
         }
     }
 }
