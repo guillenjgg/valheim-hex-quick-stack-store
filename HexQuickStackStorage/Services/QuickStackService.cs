@@ -66,6 +66,11 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
+                if (FavoriteService.IsFavorite(item))
+                {
+                    continue;
+                }
+
                 if (!ContainerHasMatchingItem(containerInventory, item))
                 {
                     continue;
