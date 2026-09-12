@@ -146,6 +146,8 @@ namespace HexQuickStackStorage
                     protectedItemSkipped = true;
                     continue;
                 }
+
+                inventory.RemoveItem(item);
             }
 
             if (protectedItemSkipped)
