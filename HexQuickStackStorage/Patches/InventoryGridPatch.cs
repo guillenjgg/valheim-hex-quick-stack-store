@@ -22,20 +22,28 @@ namespace HexQuickStackStorage.Patches
                 return true;
             }
 
-            if (!ZInput.GetKey(KeyCode.LeftShift, true) && !ZInput.GetKey(KeyCode.RightShift, true))
-            {
-                return true;
-            }
-
             if (!TrashService.IsVanillaInventoryItem(player, item))
             {
                 return true;
             }
 
-            TrashService.ToggleMarked(player, item);
-            UI.TrashBorderRenderer.Refresh(grid);
+            if (ZInput.GetKey(Plugin.TrashModifierKey, true))
+            {
+                TrashService.ToggleMarked(player, item);
+                UI.TrashBorderRenderer.Refresh(grid);
 
-            return false;
+                return false;
+            }
+
+            if (ZInput.GetKey(Plugin.FavoriteModifierKey, true))
+            {
+                // FavoriteService.ToggleFavorite(player, item);
+                // UI.FavoriteBorderRenderer.Refresh(grid);
+
+                return false;
+            }
+
+            return true;
         }
 
         [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.UpdateGui))]
@@ -43,6 +51,8 @@ namespace HexQuickStackStorage.Patches
         private static void UpdateGuiPostfix(InventoryGrid __instance)
         {
             UI.TrashBorderRenderer.Refresh(__instance);
+
+            // UI.FavoriteBorderRenderer.Refresh(__instance);
         }
     }
 }
