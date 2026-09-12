@@ -19,7 +19,6 @@ namespace HexQuickStackStorage
         private const float TrashIconXOffset = 4f;
         private const float TrashIconYOffset = 0f;
 
-        private static readonly FieldInfo CurrentContainerField = AccessTools.Field(typeof(InventoryGui), "m_currentContainer");
         private static readonly FieldInfo DragItemField = AccessTools.Field(typeof(InventoryGui), "m_dragItem");
 
         private static InventoryGui _inventoryGui;
@@ -339,18 +338,6 @@ namespace HexQuickStackStorage
         private static void OnSortClicked()
         {
             InventorySortService.SortPlayerInventory();
-
-            if (_inventoryGui == null)
-            {
-                return;
-            }
-
-            Container container = CurrentContainerField?.GetValue(_inventoryGui) as Container;
-
-            if (container != null)
-            {
-                InventorySortService.SortContainer(container);
-            }
         }
 
         private static void OnQuickStackClicked()

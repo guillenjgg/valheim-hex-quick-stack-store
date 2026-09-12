@@ -12,6 +12,11 @@ namespace HexQuickStackStorage.Patches
                 return;
             }
 
+            if (!Plugin.EnableChestAutoSorting)
+            {
+                return;
+            }
+
             Player player = Player.m_localPlayer;
 
             if (player == null)
