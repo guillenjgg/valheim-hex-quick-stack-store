@@ -6,11 +6,13 @@ This mod allows you to automatically store items from your inventory into nearby
 
 You can also delete items from your inventory and mark item types as trash.
 
+ServerSync is currently not supported, so multiplayer experience may be inconsistent.
+
 ## Instructions
 
 ### Quick Stack
 
-Click the **Q** button in your inventory or use the configured Quick Stack keyboard shortcut (defautlt 'P'.)
+Click the **Q** button in your inventory or use the configured Quick Stack keyboard shortcut (default 'P'.)
 
 Items will only be moved if:
 
