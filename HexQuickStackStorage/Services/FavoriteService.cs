@@ -27,30 +27,17 @@ namespace HexQuickStackStorage
             return FavoriteItemNames.Contains(item.m_shared.m_name);
         }
 
-        internal static void ToggleFavorite(Player player, ItemDrop.ItemData item)
+        internal static void Favorite(ItemDrop.ItemData item)
         {
-            if (player == null || item == null || item.m_shared == null)
+            if (item == null || item.m_shared == null)
             {
                 return;
             }
 
-            if (!TrashService.IsVanillaInventoryItem(player, item))
+            if (FavoriteItemNames.Add(item.m_shared.m_name))
             {
-                return;
+                SaveFavoriteItems();
             }
-
-            string itemName = item.m_shared.m_name;
-
-            if (!FavoriteItemNames.Add(itemName))
-            {
-                FavoriteItemNames.Remove(itemName);
-            }
-            else
-            {
-                TrashService.Unmark(item);
-            }
-
-            SaveFavoriteItems();
         }
 
         internal static void Unfavorite(ItemDrop.ItemData item)

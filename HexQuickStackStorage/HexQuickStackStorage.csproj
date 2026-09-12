@@ -97,6 +97,7 @@
     <Compile Include="Services\ContainerService.cs" />
     <Compile Include="Services\FavoriteService.cs" />
     <Compile Include="Services\InventorySortService.cs" />
+    <Compile Include="Services\ItemStateService.cs" />
     <Compile Include="Services\QuickStackService.cs" />
     <Compile Include="Services\TrashService.cs" />
     <Compile Include="UI\InventoryUiController.cs" />

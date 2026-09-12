@@ -56,7 +56,7 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (item.m_gridPos.y == 0)
+                if (ItemStateService.IsHotbarItem(item))
                 {
                     continue;
                 }

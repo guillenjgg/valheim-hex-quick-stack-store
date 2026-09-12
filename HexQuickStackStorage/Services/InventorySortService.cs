@@ -100,7 +100,7 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (preserveHotbar && item.m_gridPos.y == 0)
+                if (preserveHotbar && ItemStateService.IsHotbarItem(item))
                 {
                     reservedSlots.Add((item.m_gridPos.x, item.m_gridPos.y));
                     continue;

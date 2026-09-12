@@ -35,36 +35,30 @@ namespace HexQuickStackStorage
             return JunkItemNames.Contains(item.m_shared.m_name);
         }
 
-        internal static void ToggleMarked(Player player, ItemDrop.ItemData item)
+        internal static void Mark(ItemDrop.ItemData item)
         {
-            if (player == null || item == null || item.m_shared == null)
+            if (item == null || item.m_shared == null)
             {
                 return;
             }
 
-            if (!IsVanillaInventoryItem(player, item))
+            if (JunkItemNames.Add(item.m_shared.m_name))
+            {
+                SaveJunkItems();
+            }
+        }
+
+        internal static void Unmark(ItemDrop.ItemData item)
+        {
+            if (item == null || item.m_shared == null)
             {
                 return;
             }
 
-            if (!CanDeleteItem(item))
+            if (JunkItemNames.Remove(item.m_shared.m_name))
             {
-                ShowProtectedItemMessage(player);
-                return;
+                SaveJunkItems();
             }
-
-            string itemName = item.m_shared.m_name;
-
-            if (!JunkItemNames.Add(itemName))
-            {
-                JunkItemNames.Remove(itemName);
-            }
-            else
-            {
-                FavoriteService.Unfavorite(item);
-            }
-
-            SaveJunkItems();
         }
 
         internal static void DeleteDraggedItem(InventoryGui inventoryGui, Player player)
@@ -94,7 +88,7 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            if (!CanDeleteItem(item))
+            if (!ItemStateService.CanDelete(item))
             {
                 ShowProtectedItemMessage(player);
                 return;
@@ -135,7 +129,7 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (!JunkItemNames.Contains(item.m_shared.m_name))
+                if (!IsMarked(item))
                 {
                     continue;
                 }
@@ -145,7 +139,7 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (!CanDeleteItem(item))
+                if (!ItemStateService.CanDelete(item))
                 {
                     protectedItemSkipped = true;
                     continue;
@@ -170,39 +164,6 @@ namespace HexQuickStackStorage
             int vanillaHeight = GetVanillaInventoryHeight(player);
 
             return item.m_gridPos.y >= 0 && item.m_gridPos.y < vanillaHeight;
-        }
-
-        internal static void Unmark(ItemDrop.ItemData item)
-        {
-            if (item == null || item.m_shared == null)
-            {
-                return;
-            }
-
-            if (JunkItemNames.Remove(item.m_shared.m_name))
-            {
-                SaveJunkItems();
-            }
-        }
-
-        private static bool CanDeleteItem(ItemDrop.ItemData item)
-        {
-            if (item == null)
-            {
-                return false;
-            }
-
-            if (item.m_equipped)
-            {
-                return false;
-            }
-
-            if (item.m_gridPos.y == 0)
-            {
-                return false;
-            }
-
-            return true;
         }
 
         private static int GetVanillaInventoryHeight(Player player)
@@ -247,7 +208,12 @@ namespace HexQuickStackStorage
 
         private static void ShowProtectedItemMessage(Player player)
         {
-            player.Message(MessageHud.MessageType.Center, "Can't delete equipped or hotbar items.", 0, null);
+            player.Message(
+                MessageHud.MessageType.Center,
+                "Can't delete equipped, hotbar, or favorited items.",
+                0,
+                null
+            );
         }
     }
 }
