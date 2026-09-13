@@ -37,6 +37,16 @@ namespace HexQuickStackStorage
             CreateButtons();
         }
 
+        internal static Container GetCurrentContainer()
+        {
+            if (_inventoryGui == null)
+            {
+                return null;
+            }
+
+            return CurrentContainerField?.GetValue(_inventoryGui) as Container;
+        }
+
         private static void CreateButtons()
         {
             if (_inventoryGui == null || _inventoryGui.m_player == null || _inventoryGui.m_takeAllButton == null)
@@ -414,12 +424,7 @@ namespace HexQuickStackStorage
 
         private static void OnContainerSortClicked()
         {
-            if (_inventoryGui == null)
-            {
-                return;
-            }
-
-            Container container = CurrentContainerField?.GetValue(_inventoryGui) as Container;
+            Container container = GetCurrentContainer();
 
             if (container == null)
             {

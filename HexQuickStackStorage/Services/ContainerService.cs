@@ -1,23 +1,23 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace HexQuickStackStorage
 {
     internal static class ContainerService
     {
+        private static readonly MethodInfo CheckAccessMethod = typeof(Container).GetMethod("CheckAccess", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
         internal static List<Container> GetNearbyContainers(Player player)
         {
             List<Container> containers = new List<Container>();
 
-            if (player == null)
+            if (player == null || Game.instance == null)
             {
                 return containers;
             }
 
-            Collider[] colliders = Physics.OverlapSphere(
-                player.transform.position,
-                Plugin.SearchRadius
-            );
+            Collider[] colliders = Physics.OverlapSphere(player.transform.position, Plugin.SearchRadius);
 
             HashSet<Container> foundContainers = new HashSet<Container>();
 
@@ -78,7 +78,7 @@ namespace HexQuickStackStorage
                     return WasCreatedByPlayer(container, playerId);
 
                 case ContainerAccessModeEnum.Accessible:
-                    return container.CheckAccess(playerId);
+                    return CheckAccess(container, playerId);
 
                 default:
                     return false;
@@ -100,6 +100,16 @@ namespace HexQuickStackStorage
             }
 
             return piece.GetCreator() == playerId;
+        }
+
+        private static bool CheckAccess(Container container, long playerId)
+        {
+            if (container == null || CheckAccessMethod == null)
+            {
+                return false;
+            }
+
+            return (bool)CheckAccessMethod.Invoke(container, new object[] { playerId });
         }
     }
 }
