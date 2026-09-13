@@ -2,10 +2,12 @@
 
 namespace HexQuickStackStorage.Patches
 {
-    [HarmonyPatch(typeof(Container), nameof(Container.RPC_OpenResponse))]
+    [HarmonyPatch(typeof(Container))]
     internal static class ContainerPatch
     {
-        private static void Postfix(Container __instance, bool granted)
+        [HarmonyPatch(nameof(Container.RPC_OpenResponse))]
+        [HarmonyPostfix]
+        private static void RPC_OpenResponsePostfix(Container __instance, bool granted)
         {
             if (!granted)
             {
@@ -17,28 +19,28 @@ namespace HexQuickStackStorage.Patches
                 return;
             }
 
+            InventorySortService.SortContainer(__instance);
+        }
+
+        [HarmonyPatch(nameof(Container.RPC_StackResponse))]
+        [HarmonyPrefix]
+        private static bool RPC_StackResponsePrefix(Container __instance, bool granted)
+        {
+            if (!granted)
+            {
+                return true;
+            }
+
             Player player = Player.m_localPlayer;
 
-            if (player == null || Game.instance == null)
+            if (player == null)
             {
-                return;
+                return false;
             }
 
-            PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
+            QuickStackService.QuickStack(player, __instance);
 
-            if (playerProfile == null)
-            {
-                return;
-            }
-
-            long playerId = playerProfile.GetPlayerID();
-
-            if (!ContainerService.WasCreatedByPlayer(__instance, playerId))
-            {
-                return;
-            }
-
-            InventorySortService.SortContainer(__instance);
+            return false;
         }
     }
 }

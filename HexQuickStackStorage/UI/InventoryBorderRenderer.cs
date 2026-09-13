@@ -13,12 +13,7 @@ namespace HexQuickStackStorage.UI
 
         private static readonly FieldInfo ElementsField = AccessTools.Field(typeof(InventoryGrid), "m_elements");
 
-        internal static void Refresh(
-            InventoryGrid grid,
-            string borderName,
-            Color borderColor,
-            Func<ItemDrop.ItemData, bool> shouldShowBorder
-        )
+        internal static void Refresh(InventoryGrid grid, string borderName, Color borderColor, Func<ItemDrop.ItemData, bool> shouldShowBorder)
         {
             if (grid == null || grid.GetInventory() == null || shouldShowBorder == null)
             {
@@ -74,12 +69,7 @@ namespace HexQuickStackStorage.UI
             }
         }
 
-        private static void SetBorderVisible(
-            InventoryElement element,
-            string borderName,
-            Color borderColor,
-            bool visible
-        )
+        private static void SetBorderVisible(InventoryElement element, string borderName, Color borderColor, bool visible)
         {
             Transform existing = element.transform.Find(borderName);
             GameObject border = existing != null ? existing.gameObject : null;
@@ -95,11 +85,7 @@ namespace HexQuickStackStorage.UI
             }
         }
 
-        private static GameObject CreateBorder(
-            Transform parent,
-            string borderName,
-            Color borderColor
-        )
+        private static GameObject CreateBorder(Transform parent,string borderName,Color borderColor)
         {
             GameObject border = new GameObject(borderName, typeof(RectTransform));
             RectTransform borderRect = border.GetComponent<RectTransform>();

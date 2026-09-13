@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.2.0
+
+### Added
+- Added configurable container access modes for Quick Stack.
+- Added `CharacterOwned` mode to only Quick Stack into containers created by the current character.
+- Added `Accessible` mode to Quick Stack into any public container the character can access.
+
+### Changed
+- Quick Stack now respects ward-protected container access.
+- Quick Stack now supports stacking into carts.
+- The vanilla Place Stacks and hold-to-stack actions now respect favorited items.
+
+### Fixed
+- Fixed Quick Stack failing on containers due to Valheim's restricted container access methods.
+- Fixed Quick Stack failing on carts due to restricted `ZNetView` access.
+- Fixed Quick Stack failing when targeting an already-open container.
+- Fixed Place Stacks moving favorited items into containers.
+
 ## v1.1.0
 
 ### Added
