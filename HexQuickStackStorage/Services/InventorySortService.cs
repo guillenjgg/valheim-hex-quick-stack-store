@@ -1,21 +1,12 @@
-﻿using HarmonyLib;
+﻿using HexQuickStackStorage.Services;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 namespace HexQuickStackStorage
 {
     internal static class InventorySortService
     {
-        private static readonly MethodInfo ChangedMethod = AccessTools.Method(
-            typeof(Inventory),
-            "Changed",
-            new[] { typeof(bool), typeof(bool) }
-        );
-
-        private static readonly object[] ChangedArguments = { false, false };
-
         internal static void SortPlayerInventory()
         {
             Player player = Player.m_localPlayer;
@@ -39,28 +30,12 @@ namespace HexQuickStackStorage
 
         internal static void SortContainer(Container container)
         {
-            if (container == null || Game.instance == null)
+            if (container == null)
             {
                 return;
             }
 
-            Player player = Player.m_localPlayer;
-
-            if (player == null)
-            {
-                return;
-            }
-
-            PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
-
-            if (playerProfile == null)
-            {
-                return;
-            }
-
-            long playerId = playerProfile.GetPlayerID();
-
-            if (!ContainerService.WasCreatedByPlayer(container, playerId))
+            if (!ContainerService.CanUseContainer(container))
             {
                 return;
             }
@@ -151,7 +126,7 @@ namespace HexQuickStackStorage
                 }
             }
 
-            ChangedMethod?.Invoke(inventory, ChangedArguments);
+            InventoryOperationsService.NotifyChanged(inventory);
         }
 
         private static void ConsolidateStacks(Inventory inventory, List<ItemDrop.ItemData> items)

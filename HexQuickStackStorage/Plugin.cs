@@ -13,7 +13,7 @@ namespace HexQuickStackStorage
     {
         private const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.1.0";
+        private const string PluginVersion = "1.2.0";
 
         private const KeyCode DefaultTrashModifierKey = KeyCode.LeftShift;
         private const KeyCode DefaultFavoriteModifierKey = KeyCode.LeftControl;
@@ -26,6 +26,7 @@ namespace HexQuickStackStorage
         private ConfigEntry<KeyCode> _trashModifierKey;
         private ConfigEntry<KeyCode> _favoriteModifierKey;
         private ConfigEntry<bool> _enableChestAutoSorting;
+        private ConfigEntry<ContainerAccessModeEnum> _containerAccessMode;
 
         private Harmony _harmonyInstance;
         private bool _isValidatingModifierKeys;
@@ -36,6 +37,7 @@ namespace HexQuickStackStorage
         internal static KeyCode TrashModifierKey => Instance?._trashModifierKey != null ? Instance._trashModifierKey.Value : DefaultTrashModifierKey;
         internal static KeyCode FavoriteModifierKey => Instance?._favoriteModifierKey != null ? Instance._favoriteModifierKey.Value : DefaultFavoriteModifierKey;
         internal static bool EnableChestAutoSorting => Instance?._enableChestAutoSorting != null && Instance._enableChestAutoSorting.Value;
+        internal static ContainerAccessModeEnum ContainerAccessMode => Instance?._containerAccessMode != null ? Instance._containerAccessMode.Value : ContainerAccessModeEnum.CharacterOwned;
 
         private void Awake()
         {
@@ -78,6 +80,13 @@ namespace HexQuickStackStorage
                 "EnableChestAutoSorting",
                 false,
                 "Automatically sort a chest when it is opened."
+            );
+
+            _containerAccessMode = Config.Bind(
+                "Chests",
+                "ContainerAccessMode",
+                ContainerAccessModeEnum.CharacterOwned,
+                "Controls which containers Quick Stack can use. CharacterOwned only uses containers created by the current character. Accessible allows any public container the character can access."
             );
 
             _trashModifierKey.SettingChanged += OnModifierKeyChanged;

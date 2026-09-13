@@ -9,19 +9,10 @@ namespace HexQuickStackStorage
         {
             List<Container> containers = new List<Container>();
 
-            if (player == null || Game.instance == null)
+            if (player == null)
             {
                 return containers;
             }
-
-            PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
-
-            if (playerProfile == null)
-            {
-                return containers;
-            }
-
-            long playerId = playerProfile.GetPlayerID();
 
             Collider[] colliders = Physics.OverlapSphere(
                 player.transform.position,
@@ -49,7 +40,7 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (!WasCreatedByPlayer(container, playerId))
+                if (!CanUseContainer(container))
                 {
                     continue;
                 }
@@ -58,6 +49,40 @@ namespace HexQuickStackStorage
             }
 
             return containers;
+        }
+
+        internal static bool CanUseContainer(Container container)
+        {
+            if (container == null || Game.instance == null)
+            {
+                return false;
+            }
+
+            PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
+
+            if (playerProfile == null)
+            {
+                return false;
+            }
+
+            if (container.m_checkGuardStone && !PrivateArea.CheckAccess(container.transform.position, 0f, true, false))
+            {
+                return false;
+            }
+
+            long playerId = playerProfile.GetPlayerID();
+
+            switch (Plugin.ContainerAccessMode)
+            {
+                case ContainerAccessModeEnum.CharacterOwned:
+                    return WasCreatedByPlayer(container, playerId);
+
+                case ContainerAccessModeEnum.Accessible:
+                    return container.CheckAccess(playerId);
+
+                default:
+                    return false;
+            }
         }
 
         internal static bool WasCreatedByPlayer(Container container, long playerId)
