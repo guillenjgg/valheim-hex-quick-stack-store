@@ -2,73 +2,116 @@
 
 Inspired by Goldenrevolver's **Quick Stack Store Sort Trash** mod.
 
-This mod allows you to automatically store items from your inventory into nearby chests within a configurable radius.
+This mod adds Quick Stack, inventory sorting, chest sorting, trash management, and item favorites.
 
-You can also delete items from your inventory and mark item types as trash.
+ServerSync is currently not supported, and the mod has not been tested in multiplayer. Multiplayer behavior may be inconsistent.
 
-ServerSync is currently not supported, so multiplayer experience may be inconsistent.
+Any multiplayer feedback is welcome. I don't have testers for multiplayer scenarios.
 
 ## Instructions
 
 ### Quick Stack
 
-Click the **Q** button in your inventory or use the configured Quick Stack keyboard shortcut (default 'P'.)
+Click the **Q** button in your inventory or use the configured Quick Stack keyboard shortcut (default `P`).
 
 Items will only be moved if:
 
 - The item is not equipped
 - The item is not in your hotbar
+- The item is not favorited
 - The item is inside the normal player inventory
-- A nearby player-owned chest already contains that item type
-- The chest has enough room for the item
+- A nearby container created by your player already contains that item type
+- The container has enough room for the item
 
-Items will not be stored in empty chests or chests that do not already contain that item.
+Items will not be stored in empty containers or containers that do not already contain that item type.
 
-### Sort
+### Sort Inventory
 
-Click the **S** button to sort your inventory.
+Click the **S** button in your inventory to sort your normal player inventory.
 
-If a chest is currently open, the chest will also be sorted.
+Sorting will:
 
-The player's hotbar and equipped items will not be moved.
+- Leave hotbar items in their current slots
+- Leave equipped items in their current slots
+- Leave favorited items in their current slots
+- Consolidate compatible item stacks
+- Sort the remaining inventory items
 
-### How to Delete Items
+### Sort Chests
+
+When a chest is open, click the **Sort** button beneath the chest inventory to sort it.
+
+Automatic chest sorting can also be enabled in the configuration. When enabled, supported chests will be sorted when opened.
+
+### Favorite Items
+
+Hold **Left Control** and **Right Click** an item to favorite or unfavorite that item type.
+
+Favorited items have a gold border and:
+
+- Cannot be Quick Stacked
+- Will not be moved or consolidated when sorting your inventory
+- Cannot be deleted
+
+Favorites apply to the entire item type. For example, favoriting Wood Arrows will cause all Wood Arrow stacks to be treated as favorites.
+
+The Favorite modifier key can be changed in the configuration.
+
+### Delete Items
 
 There are two ways to delete items.
 
 #### Drag and Delete
 
-Click and drag an item from your inventory, then click the trash icon.
+Drag an item from your inventory, then click the trash icon.
 
-The dragged item will be deleted.
+Items cannot be deleted if they are:
 
-Items cannot be deleted while equipped or while they are in the hotbar. Move the item into the normal inventory first.
+- Equipped
+- In the hotbar
+- Favorited
 
 #### Mark Items as Trash
 
-Hold **Shift** and **Right Click** an item to mark that item type as trash.
+Hold **Left Shift** and **Right Click** an item to mark or unmark that item type as trash.
 
-Items marked as trash will have a red border around them.
+Items marked as trash have a red border.
 
-Click the trash icon to automatically delete all items currently marked as trash.
+Click the trash icon to delete all currently marked trash items from your inventory.
 
-Shift + Right Click the item again to remove the trash tag.
+Trash applies to the entire item type. Newly picked up items of the same type will also be treated as trash.
 
-Once an item type is marked as trash, newly picked up items of that same type will also be marked as trash.
+Items cannot be marked as trash if they are equipped, in the hotbar, or favorited.
 
-Trash selections persist between game sessions.
+Marking an item as trash removes its favorite state.
+
+The Trash modifier key can be changed in the configuration.
+
+## Favorite and Trash Storage
+
+Favorite and trash selections are stored as text files in the BepInEx config directory.
+
+- `HexQuickStackStorage.favorites.txt` stores favorited item types
+- `HexQuickStackStorage.junk.txt` stores item types marked as trash
+
+Each file contains the internal item names used by the mod, with one item type per line.
+
+These files are loaded when the mod starts and updated automatically whenever you favorite, unfavorite, mark, or unmark an item type.
+
+Deleting either file will clear the corresponding saved selections the next time the mod starts.
 
 ## Container Ownership
 
-Quick Stack and chest sorting only work with player-created containers.
+Quick Stack and chest sorting only work with containers created by your player.
 
-Naturally generated/world containers are ignored.
+Naturally generated and world containers are ignored.
 
 ## Multiplayer
 
 - Client-side mod
-- Does not have server sync
-- Uses chest ownership validation
+- Does not currently support ServerSync
+- Has not been tested in multiplayer
+- Quick Stack and chest sorting only use containers created by your player
 
 ## Configuration
 
@@ -76,6 +119,11 @@ Configuration options include:
 
 - Quick Stack search radius
 - Quick Stack keyboard shortcut
+- Trash modifier key
+- Favorite modifier key
+- Automatic chest sorting
+
+The Trash and Favorite modifier keys cannot use the same key.
 
 ## Support
 

@@ -2,11 +2,9 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using System;
 using System.Reflection;
-using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace HexQuickStackStorage
 {
@@ -15,17 +13,29 @@ namespace HexQuickStackStorage
     {
         private const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.0.1";
+        private const string PluginVersion = "1.1.0";
+
+        private const KeyCode DefaultTrashModifierKey = KeyCode.LeftShift;
+        private const KeyCode DefaultFavoriteModifierKey = KeyCode.LeftControl;
 
         internal static Plugin Instance { get; private set; }
         internal static ManualLogSource Log { get; private set; }
 
         private ConfigEntry<float> _searchRadius;
         private ConfigEntry<KeyboardShortcut> _quickStackShortcut;
+        private ConfigEntry<KeyCode> _trashModifierKey;
+        private ConfigEntry<KeyCode> _favoriteModifierKey;
+        private ConfigEntry<bool> _enableChestAutoSorting;
+
         private Harmony _harmonyInstance;
+        private bool _isValidatingModifierKeys;
+        private bool _modifierValidationMessagePending;
 
         internal static float SearchRadius => Instance?._searchRadius != null ? Instance._searchRadius.Value : 25f;
         internal static KeyboardShortcut QuickStackShortcut => Instance?._quickStackShortcut != null ? Instance._quickStackShortcut.Value : new KeyboardShortcut(KeyCode.P);
+        internal static KeyCode TrashModifierKey => Instance?._trashModifierKey != null ? Instance._trashModifierKey.Value : DefaultTrashModifierKey;
+        internal static KeyCode FavoriteModifierKey => Instance?._favoriteModifierKey != null ? Instance._favoriteModifierKey.Value : DefaultFavoriteModifierKey;
+        internal static bool EnableChestAutoSorting => Instance?._enableChestAutoSorting != null && Instance._enableChestAutoSorting.Value;
 
         private void Awake()
         {
@@ -33,7 +43,7 @@ namespace HexQuickStackStorage
             Log = Logger;
 
             _searchRadius = Config.Bind(
-                "General",
+                "Chests",
                 "SearchRadius",
                 25f,
                 new ConfigDescription(
@@ -43,15 +53,43 @@ namespace HexQuickStackStorage
             );
 
             _quickStackShortcut = Config.Bind(
-                "General",
+                "Chests",
                 "QuickStackShortcut",
                 new KeyboardShortcut(KeyCode.P),
                 "Keyboard shortcut used to quick stack nearby containers."
             );
 
+            _trashModifierKey = Config.Bind(
+                "Inventory",
+                "TrashModifierKey",
+                DefaultTrashModifierKey,
+                "Modifier key held while right-clicking an item to mark or unmark it as trash."
+            );
+
+            _favoriteModifierKey = Config.Bind(
+                "Inventory",
+                "FavoriteModifierKey",
+                DefaultFavoriteModifierKey,
+                "Modifier key held while right-clicking an item to favorite or unfavorite it."
+            );
+
+            _enableChestAutoSorting = Config.Bind(
+                "Chests",
+                "EnableChestAutoSorting",
+                false,
+                "Automatically sort a chest when it is opened."
+            );
+
+            _trashModifierKey.SettingChanged += OnModifierKeyChanged;
+            _favoriteModifierKey.SettingChanged += OnModifierKeyChanged;
+
+            ValidateModifierKeys();
+
             TrashService.Initialize();
+            FavoriteService.Initialize();
 
             Assembly assembly = Assembly.GetExecutingAssembly();
+
             _harmonyInstance = new Harmony(PluginGuid);
             _harmonyInstance.PatchAll(assembly);
 
@@ -60,9 +98,16 @@ namespace HexQuickStackStorage
 
         private void Update()
         {
-            if (IsTypingInInputField())
+            Player player = Player.m_localPlayer;
+
+            if (player == null)
             {
                 return;
+            }
+
+            if (_modifierValidationMessagePending)
+            {
+                ShowModifierValidationMessage(player);
             }
 
             if (!QuickStackShortcut.IsDown())
@@ -70,9 +115,17 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            Player player = Player.m_localPlayer;
+            if (global::Console.IsVisible())
+            {
+                return;
+            }
 
-            if (player == null)
+            if (TextInput.IsVisible())
+            {
+                return;
+            }
+
+            if (Menu.IsVisible())
             {
                 return;
             }
@@ -82,6 +135,16 @@ namespace HexQuickStackStorage
 
         private void OnDestroy()
         {
+            if (_trashModifierKey != null)
+            {
+                _trashModifierKey.SettingChanged -= OnModifierKeyChanged;
+            }
+
+            if (_favoriteModifierKey != null)
+            {
+                _favoriteModifierKey.SettingChanged -= OnModifierKeyChanged;
+            }
+
             _harmonyInstance?.UnpatchSelf();
 
             Log?.LogInfo($"{PluginName} v{PluginVersion} unloaded.");
@@ -89,16 +152,52 @@ namespace HexQuickStackStorage
             Instance = null;
         }
 
-        private static bool IsTypingInInputField()
+        private void OnModifierKeyChanged(object sender, EventArgs e)
         {
-            if (EventSystem.current == null || EventSystem.current.currentSelectedGameObject == null)
+            ValidateModifierKeys();
+        }
+
+        private void ValidateModifierKeys()
+        {
+            if (_isValidatingModifierKeys)
             {
-                return false;
+                return;
             }
 
-            GameObject selectedObject = EventSystem.current.currentSelectedGameObject;
+            if (_trashModifierKey.Value != _favoriteModifierKey.Value)
+            {
+                return;
+            }
 
-            return selectedObject.GetComponent<InputField>() != null || selectedObject.GetComponent<TMP_InputField>() != null;
+            _isValidatingModifierKeys = true;
+
+            _favoriteModifierKey.Value = _trashModifierKey.Value == DefaultFavoriteModifierKey
+                ? DefaultTrashModifierKey
+                : DefaultFavoriteModifierKey;
+
+            _isValidatingModifierKeys = false;
+
+            Player player = Player.m_localPlayer;
+
+            if (player == null)
+            {
+                _modifierValidationMessagePending = true;
+                return;
+            }
+
+            ShowModifierValidationMessage(player);
+        }
+
+        private void ShowModifierValidationMessage(Player player)
+        {
+            player.Message(
+                MessageHud.MessageType.Center,
+                "Trash and Favorite modifier keys cannot be the same. Favorite modifier has been reset.",
+                0,
+                null
+            );
+
+            _modifierValidationMessagePending = false;
         }
     }
 }

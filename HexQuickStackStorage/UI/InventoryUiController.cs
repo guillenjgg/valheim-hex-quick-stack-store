@@ -11,6 +11,7 @@ namespace HexQuickStackStorage
     {
         private const string SortButtonName = "HexSortButton";
         private const string QuickStackButtonName = "HexQuickStackButton";
+        private const string ContainerSortButtonName = "HexContainerSortButton";
         private const string TrashButtonName = "HexTrashButton";
 
         private const float ButtonSize = 36f;
@@ -47,6 +48,7 @@ namespace HexQuickStackStorage
 
             CreateActionButton(nativeButton, SortButtonName, "S", 0, OnSortClicked);
             CreateActionButton(nativeButton, QuickStackButtonName, "Q", 1, OnQuickStackClicked);
+            CreateContainerSortButton();
             CreateTrashButton(OnTrashClicked);
         }
 
@@ -76,6 +78,54 @@ namespace HexQuickStackStorage
             SetButtonText(buttonObject, text);
             StyleActionButton(buttonObject);
             PositionActionButton(buttonObject, index);
+
+            buttonObject.SetActive(true);
+
+            return button;
+        }
+
+        private static Button CreateContainerSortButton()
+        {
+            if (_inventoryGui == null || _inventoryGui.m_stackAllButton == null)
+            {
+                return null;
+            }
+
+            Button template = _inventoryGui.m_stackAllButton;
+            Transform parent = template.transform.parent;
+
+            if (parent == null)
+            {
+                return null;
+            }
+
+            Transform existing = parent.Find(ContainerSortButtonName);
+
+            if (existing != null)
+            {
+                return existing.GetComponent<Button>();
+            }
+
+            GameObject buttonObject = UnityEngine.Object.Instantiate(
+                template.gameObject,
+                parent
+            );
+
+            buttonObject.name = ContainerSortButtonName;
+
+            Button button = buttonObject.GetComponent<Button>();
+
+            if (button == null)
+            {
+                UnityEngine.Object.Destroy(buttonObject);
+                return null;
+            }
+
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(OnContainerSortClicked);
+
+            SetButtonText(buttonObject, "Sort");
+            PositionContainerSortButton(buttonObject, template.gameObject);
 
             buttonObject.SetActive(true);
 
@@ -232,6 +282,27 @@ namespace HexQuickStackStorage
             trashRect.position = middleWorldPosition;
         }
 
+        private static void PositionContainerSortButton(GameObject buttonObject, GameObject templateObject)
+        {
+            RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
+            RectTransform templateRect = templateObject.GetComponent<RectTransform>();
+
+            if (buttonRect == null || templateRect == null)
+            {
+                return;
+            }
+
+            buttonRect.anchorMin = templateRect.anchorMin;
+            buttonRect.anchorMax = templateRect.anchorMax;
+            buttonRect.pivot = templateRect.pivot;
+            buttonRect.sizeDelta = templateRect.sizeDelta;
+
+            buttonRect.anchoredPosition = new Vector2(
+                templateRect.anchoredPosition.x,
+                templateRect.anchoredPosition.y - templateRect.rect.height - ButtonSpacing
+            );
+        }
+
         private static RectTransform FindStatusTab(string namePart)
         {
             RectTransform[] rectTransforms = _inventoryGui.GetComponentsInChildren<RectTransform>(true);
@@ -339,7 +410,10 @@ namespace HexQuickStackStorage
         private static void OnSortClicked()
         {
             InventorySortService.SortPlayerInventory();
+        }
 
+        private static void OnContainerSortClicked()
+        {
             if (_inventoryGui == null)
             {
                 return;
@@ -347,10 +421,12 @@ namespace HexQuickStackStorage
 
             Container container = CurrentContainerField?.GetValue(_inventoryGui) as Container;
 
-            if (container != null)
+            if (container == null)
             {
-                InventorySortService.SortContainer(container);
+                return;
             }
+
+            InventorySortService.SortContainer(container);
         }
 
         private static void OnQuickStackClicked()

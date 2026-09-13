@@ -22,27 +22,52 @@ namespace HexQuickStackStorage.Patches
                 return true;
             }
 
-            if (!ZInput.GetKey(KeyCode.LeftShift, true) && !ZInput.GetKey(KeyCode.RightShift, true))
-            {
-                return true;
-            }
-
             if (!TrashService.IsVanillaInventoryItem(player, item))
             {
                 return true;
             }
 
-            TrashService.ToggleMarked(player, item);
-            UI.TrashBorderRenderer.Refresh(grid);
+            if (ZInput.GetKey(Plugin.TrashModifierKey, true))
+            {
+                ItemStateService.ToggleTrash(player, item);
+                RefreshItemStateBorders(grid);
 
-            return false;
+                return false;
+            }
+
+            if (ZInput.GetKey(Plugin.FavoriteModifierKey, true))
+            {
+                ItemStateService.ToggleFavorite(player, item);
+                RefreshItemStateBorders(grid);
+
+                return false;
+            }
+
+            return true;
         }
 
         [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.UpdateGui))]
         [HarmonyPostfix]
         private static void UpdateGuiPostfix(InventoryGrid __instance)
         {
-            UI.TrashBorderRenderer.Refresh(__instance);
+            RefreshItemStateBorders(__instance);
+        }
+
+        private static void RefreshItemStateBorders(InventoryGrid grid)
+        {
+            UI.InventoryBorderRenderer.Refresh(
+                grid,
+                "HexTrashBorder",
+                Color.red,
+                TrashService.IsMarked
+            );
+
+            UI.InventoryBorderRenderer.Refresh(
+                grid,
+                "HexFavoriteBorder",
+                new Color(1f, 0.75f, 0f),
+                FavoriteService.IsFavorite
+            );
         }
     }
 }

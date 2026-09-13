@@ -12,16 +12,28 @@ namespace HexQuickStackStorage.Patches
                 return;
             }
 
-            Player player = Player.m_localPlayer;
-
-            if (player == null)
+            if (!Plugin.EnableChestAutoSorting)
             {
                 return;
             }
 
-            long playerId = Game.instance.GetPlayerProfile().GetPlayerID();
+            Player player = Player.m_localPlayer;
 
-            if (!ContainerService.IsPlayerOwnedContainer(__instance, playerId))
+            if (player == null || Game.instance == null)
+            {
+                return;
+            }
+
+            PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
+
+            if (playerProfile == null)
+            {
+                return;
+            }
+
+            long playerId = playerProfile.GetPlayerID();
+
+            if (!ContainerService.WasCreatedByPlayer(__instance, playerId))
             {
                 return;
             }
