@@ -35,11 +35,6 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            if (!ContainerService.CanUseContainer(container))
-            {
-                return;
-            }
-
             Inventory inventory = container.GetInventory();
 
             if (inventory == null)

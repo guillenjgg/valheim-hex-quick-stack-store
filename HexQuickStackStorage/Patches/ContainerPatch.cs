@@ -19,11 +19,6 @@ namespace HexQuickStackStorage.Patches
                 return;
             }
 
-            if (!ContainerService.CanUseContainer(__instance))
-            {
-                return;
-            }
-
             InventorySortService.SortContainer(__instance);
         }
 

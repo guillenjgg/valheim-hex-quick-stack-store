@@ -4,10 +4,10 @@ namespace HexQuickStackStorage.Services
 {
     internal static class InventoryOperationsService
     {
-        private static readonly MethodInfo ChangedMethod = typeof(Inventory).GetMethod("Changed", BindingFlags.Instance | BindingFlags.NonPublic);
-        private static readonly MethodInfo FindFreeStackItemMethod = typeof(Inventory).GetMethod("FindFreeStackItem", BindingFlags.Instance | BindingFlags.NonPublic);
-        private static readonly MethodInfo FindEmptySlotMethod = typeof(Inventory).GetMethod("FindEmptySlot", BindingFlags.Instance | BindingFlags.NonPublic);
-        private static readonly MethodInfo TopFirstMethod = typeof(Inventory).GetMethod("TopFirst", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly MethodInfo ChangedMethod = typeof(Inventory).GetMethod("Changed", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(bool), typeof(bool) }, null);
+        private static readonly MethodInfo FindFreeStackItemMethod = typeof(Inventory).GetMethod("FindFreeStackItem", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(string), typeof(int), typeof(int) }, null);
+        private static readonly MethodInfo FindEmptySlotMethod = typeof(Inventory).GetMethod("FindEmptySlot", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(bool) }, null);
+        private static readonly MethodInfo TopFirstMethod = typeof(Inventory).GetMethod("TopFirst", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(ItemDrop.ItemData) }, null);
 
         private static readonly object[] ChangedArguments = { false, false };
 
@@ -28,12 +28,7 @@ namespace HexQuickStackStorage.Services
                 return null;
             }
 
-            return FindFreeStackItemMethod.Invoke(inventory, new object[]
-            {
-                item.m_shared.m_name,
-                item.m_quality,
-                item.m_worldLevel
-            }) as ItemDrop.ItemData;
+            return FindFreeStackItemMethod.Invoke(inventory, new object[] { item.m_shared.m_name, item.m_quality, item.m_worldLevel }) as ItemDrop.ItemData;
         }
 
         internal static Vector2i FindEmptySlot(Inventory inventory, ItemDrop.ItemData item)
