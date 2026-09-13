@@ -9,17 +9,34 @@ namespace HexQuickStackStorage
         {
             List<Container> containers = new List<Container>();
 
-            if (player == null)
+            if (player == null || Game.instance == null)
             {
                 return containers;
             }
 
-            long playerId = Game.instance.GetPlayerProfile().GetPlayerID();
-            Collider[] colliders = Physics.OverlapSphere(player.transform.position, Plugin.SearchRadius);
+            PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
+
+            if (playerProfile == null)
+            {
+                return containers;
+            }
+
+            long playerId = playerProfile.GetPlayerID();
+
+            Collider[] colliders = Physics.OverlapSphere(
+                player.transform.position,
+                Plugin.SearchRadius
+            );
+
             HashSet<Container> foundContainers = new HashSet<Container>();
 
             foreach (Collider collider in colliders)
             {
+                if (collider == null)
+                {
+                    continue;
+                }
+
                 Container container = collider.GetComponentInParent<Container>();
 
                 if (container == null)
@@ -32,7 +49,7 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (!IsPlayerOwnedContainer(container, playerId))
+                if (!WasCreatedByPlayer(container, playerId))
                 {
                     continue;
                 }
@@ -43,7 +60,7 @@ namespace HexQuickStackStorage
             return containers;
         }
 
-        internal static bool IsPlayerOwnedContainer(Container container, long playerId)
+        internal static bool WasCreatedByPlayer(Container container, long playerId)
         {
             if (container == null)
             {

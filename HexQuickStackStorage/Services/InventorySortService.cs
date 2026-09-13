@@ -8,7 +8,12 @@ namespace HexQuickStackStorage
 {
     internal static class InventorySortService
     {
-        private static readonly MethodInfo ChangedMethod = AccessTools.Method(typeof(Inventory), "Changed", new[] { typeof(bool), typeof(bool) });
+        private static readonly MethodInfo ChangedMethod = AccessTools.Method(
+            typeof(Inventory),
+            "Changed",
+            new[] { typeof(bool), typeof(bool) }
+        );
+
         private static readonly object[] ChangedArguments = { false, false };
 
         internal static void SortPlayerInventory()
@@ -34,7 +39,7 @@ namespace HexQuickStackStorage
 
         internal static void SortContainer(Container container)
         {
-            if (container == null)
+            if (container == null || Game.instance == null)
             {
                 return;
             }
@@ -46,9 +51,16 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            long playerId = Game.instance.GetPlayerProfile().GetPlayerID();
+            PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
 
-            if (!ContainerService.IsPlayerOwnedContainer(container, playerId))
+            if (playerProfile == null)
+            {
+                return;
+            }
+
+            long playerId = playerProfile.GetPlayerID();
+
+            if (!ContainerService.WasCreatedByPlayer(container, playerId))
             {
                 return;
             }
@@ -89,7 +101,7 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (!IsValidSlot(item.m_gridPos, width, validHeight))
+                if (!IsPositionWithinBounds(item.m_gridPos, width, validHeight))
                 {
                     continue;
                 }
@@ -219,7 +231,8 @@ namespace HexQuickStackStorage
 
         private static int GetVanillaInventoryHeight(Player player)
         {
-            if (player.TryGetUniqueKeyValue(Player.InventoryRowsKey, out string value) && int.TryParse(value, out int rows))
+            if (player.TryGetUniqueKeyValue(Player.InventoryRowsKey, out string value) &&
+                int.TryParse(value, out int rows))
             {
                 return Mathf.Clamp(rows, 0, 9);
             }
@@ -227,9 +240,12 @@ namespace HexQuickStackStorage
             return 4;
         }
 
-        private static bool IsValidSlot(Vector2i position, int width, int height)
+        private static bool IsPositionWithinBounds(Vector2i position, int width, int height)
         {
-            return position.x >= 0 && position.x < width && position.y >= 0 && position.y < height;
+            return position.x >= 0 &&
+                   position.x < width &&
+                   position.y >= 0 &&
+                   position.y < height;
         }
 
         private static int CompareItems(ItemDrop.ItemData firstItem, ItemDrop.ItemData secondItem)
@@ -241,7 +257,11 @@ namespace HexQuickStackStorage
                 return result;
             }
 
-            result = string.Compare(firstItem.m_shared.m_name, secondItem.m_shared.m_name, StringComparison.Ordinal);
+            result = string.Compare(
+                firstItem.m_shared.m_name,
+                secondItem.m_shared.m_name,
+                StringComparison.Ordinal
+            );
 
             if (result != 0)
             {

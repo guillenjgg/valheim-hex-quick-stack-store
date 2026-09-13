@@ -4,10 +4,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using System;
 using System.Reflection;
-using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace HexQuickStackStorage
 {
@@ -31,8 +28,8 @@ namespace HexQuickStackStorage
         private ConfigEntry<bool> _enableChestAutoSorting;
 
         private Harmony _harmonyInstance;
-        private bool _modifierValidationMessagePending;
         private bool _isValidatingModifierKeys;
+        private bool _modifierValidationMessagePending;
 
         internal static float SearchRadius => Instance?._searchRadius != null ? Instance._searchRadius.Value : 25f;
         internal static KeyboardShortcut QuickStackShortcut => Instance?._quickStackShortcut != null ? Instance._quickStackShortcut.Value : new KeyboardShortcut(KeyCode.P);
@@ -92,6 +89,7 @@ namespace HexQuickStackStorage
             FavoriteService.Initialize();
 
             Assembly assembly = Assembly.GetExecutingAssembly();
+
             _harmonyInstance = new Harmony(PluginGuid);
             _harmonyInstance.PatchAll(assembly);
 
@@ -105,6 +103,11 @@ namespace HexQuickStackStorage
             if (player == null)
             {
                 return;
+            }
+
+            if (_modifierValidationMessagePending)
+            {
+                ShowModifierValidationMessage(player);
             }
 
             if (!QuickStackShortcut.IsDown())
@@ -195,18 +198,6 @@ namespace HexQuickStackStorage
             );
 
             _modifierValidationMessagePending = false;
-        }
-
-        private static bool IsTypingInInputField()
-        {
-            if (EventSystem.current == null || EventSystem.current.currentSelectedGameObject == null)
-            {
-                return false;
-            }
-
-            GameObject selectedObject = EventSystem.current.currentSelectedGameObject;
-
-            return selectedObject.GetComponent<InputField>() != null || selectedObject.GetComponent<TMP_InputField>() != null;
         }
     }
 }

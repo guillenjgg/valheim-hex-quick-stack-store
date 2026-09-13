@@ -36,13 +36,26 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                QuickStackIntoContainer(player, playerInventory, containerInventory, vanillaHeight);
+                QuickStackIntoContainer(
+                    player,
+                    playerInventory,
+                    containerInventory,
+                    vanillaHeight
+                );
             }
         }
 
-        private static void QuickStackIntoContainer(Player player, Inventory playerInventory, Inventory containerInventory, int vanillaHeight)
+        private static void QuickStackIntoContainer(
+            Player player,
+            Inventory playerInventory,
+            Inventory containerInventory,
+            int vanillaHeight
+        )
         {
-            List<ItemDrop.ItemData> items = new List<ItemDrop.ItemData>(playerInventory.GetAllItems());
+            List<ItemDrop.ItemData> items =
+                new List<ItemDrop.ItemData>(
+                    playerInventory.GetAllItems()
+                );
 
             foreach (ItemDrop.ItemData item in items)
             {
@@ -51,7 +64,8 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (item.m_gridPos.y < 0 || item.m_gridPos.y >= vanillaHeight)
+                if (item.m_gridPos.y < 0 ||
+                    item.m_gridPos.y >= vanillaHeight)
                 {
                     continue;
                 }
@@ -71,35 +85,50 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (!ContainerHasMatchingItem(containerInventory, item))
+                if (!ContainerHasMatchingItem(
+                    containerInventory,
+                    item
+                ))
                 {
                     continue;
                 }
 
-                if (!containerInventory.CanAddItem(item))
-                {
-                    continue;
-                }
+                int originalStack = item.m_stack;
 
-                if (containerInventory.AddItem(item))
+                bool fullyAdded =
+                    containerInventory.AddItem(item);
+
+                if (fullyAdded)
                 {
                     playerInventory.RemoveItem(item);
+                    continue;
+                }
+
+                if (item.m_stack < originalStack)
+                {
+                    playerInventory.Changed();
                 }
             }
         }
 
-        private static bool ContainerHasMatchingItem(Inventory containerInventory, ItemDrop.ItemData sourceItem)
+        private static bool ContainerHasMatchingItem(
+            Inventory containerInventory,
+            ItemDrop.ItemData sourceItem
+        )
         {
-            List<ItemDrop.ItemData> containerItems = containerInventory.GetAllItems();
+            List<ItemDrop.ItemData> containerItems =
+                containerInventory.GetAllItems();
 
             foreach (ItemDrop.ItemData containerItem in containerItems)
             {
-                if (containerItem == null)
+                if (containerItem == null ||
+                    containerItem.m_shared == null)
                 {
                     continue;
                 }
 
-                if (containerItem.m_shared.m_name == sourceItem.m_shared.m_name)
+                if (containerItem.m_shared.m_name ==
+                    sourceItem.m_shared.m_name)
                 {
                     return true;
                 }
@@ -108,11 +137,24 @@ namespace HexQuickStackStorage
             return false;
         }
 
-        private static int GetVanillaInventoryHeight(Player player)
+        private static int GetVanillaInventoryHeight(
+            Player player
+        )
         {
-            if (player.TryGetUniqueKeyValue(Player.InventoryRowsKey, out string value) && int.TryParse(value, out int rows))
+            if (player.TryGetUniqueKeyValue(
+                    Player.InventoryRowsKey,
+                    out string value
+                ) &&
+                int.TryParse(
+                    value,
+                    out int rows
+                ))
             {
-                return Mathf.Clamp(rows, 0, 9);
+                return Mathf.Clamp(
+                    rows,
+                    0,
+                    9
+                );
             }
 
             return 4;

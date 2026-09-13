@@ -19,14 +19,21 @@ namespace HexQuickStackStorage.Patches
 
             Player player = Player.m_localPlayer;
 
-            if (player == null)
+            if (player == null || Game.instance == null)
             {
                 return;
             }
 
-            long playerId = Game.instance.GetPlayerProfile().GetPlayerID();
+            PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
 
-            if (!ContainerService.IsPlayerOwnedContainer(__instance, playerId))
+            if (playerProfile == null)
+            {
+                return;
+            }
+
+            long playerId = playerProfile.GetPlayerID();
+
+            if (!ContainerService.WasCreatedByPlayer(__instance, playerId))
             {
                 return;
             }
