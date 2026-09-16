@@ -1,18 +1,20 @@
 ﻿using HarmonyLib;
+using HexQuickStackStorage.UI;
 using System;
 using System.Reflection;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HexQuickStackStorage
 {
     internal static class InventoryUiController
     {
-        private const string SortButtonName = "HexSortButton";
-        private const string QuickStackButtonName = "HexQuickStackButton";
-        private const string ContainerSortButtonName = "HexContainerSortButton";
-        private const string TrashButtonName = "HexTrashButton";
+        private const string SortButtonName = Plugin.PluginGuid + ".SortButton";
+        private const string QuickStackButtonName = Plugin.PluginGuid + ".QuickStackButton";
+        private const string ContainerSortButtonName = Plugin.PluginGuid + ".ContainerSortButton";
+        private const string TrashButtonName = Plugin.PluginGuid + ".TrashButton";
 
         private const float ButtonSize = 36f;
         private const float ButtonSpacing = 4f;
@@ -62,7 +64,7 @@ namespace HexQuickStackStorage
             CreateTrashButton(OnTrashClicked);
         }
 
-        private static Button CreateActionButton(Button template, string buttonName, string text, int index, UnityEngine.Events.UnityAction onClick)
+        private static Button CreateActionButton(Button template, string buttonName, string text, int index, UnityAction onClick)
         {
             Transform existing = _inventoryGui.m_player.transform.Find(buttonName);
 
@@ -116,11 +118,7 @@ namespace HexQuickStackStorage
                 return existing.GetComponent<Button>();
             }
 
-            GameObject buttonObject = UnityEngine.Object.Instantiate(
-                template.gameObject,
-                parent
-            );
-
+            GameObject buttonObject = UnityEngine.Object.Instantiate(template.gameObject, parent);
             buttonObject.name = ContainerSortButtonName;
 
             Button button = buttonObject.GetComponent<Button>();
@@ -142,7 +140,7 @@ namespace HexQuickStackStorage
             return button;
         }
 
-        private static Button CreateTrashButton(UnityEngine.Events.UnityAction onClick)
+        private static Button CreateTrashButton(UnityAction onClick)
         {
             Transform existing = FindChildRecursive(_inventoryGui.transform, TrashButtonName);
 
@@ -208,7 +206,7 @@ namespace HexQuickStackStorage
 
         private static void CreateTrashIcon(Transform parent)
         {
-            GameObject iconRoot = new GameObject("TrashIcon", typeof(RectTransform));
+            GameObject iconRoot = new GameObject($"{Plugin.PluginGuid}.TrashIcon", typeof(RectTransform));
             RectTransform iconRootRect = iconRoot.GetComponent<RectTransform>();
 
             iconRootRect.SetParent(parent, false);
@@ -218,7 +216,7 @@ namespace HexQuickStackStorage
             iconRootRect.sizeDelta = new Vector2(TrashIconSize, TrashIconSize);
             iconRootRect.anchoredPosition = new Vector2(TrashIconXOffset, TrashIconYOffset);
 
-            GameObject body = CreateIconPart(iconRoot.transform, "Body");
+            GameObject body = CreateIconPart(iconRoot.transform, $"{Plugin.PluginGuid}.TrashIcon.Body");
             RectTransform bodyRect = body.GetComponent<RectTransform>();
 
             bodyRect.anchorMin = new Vector2(0.20f, 0.10f);
@@ -226,7 +224,7 @@ namespace HexQuickStackStorage
             bodyRect.offsetMin = Vector2.zero;
             bodyRect.offsetMax = Vector2.zero;
 
-            GameObject lid = CreateIconPart(iconRoot.transform, "Lid");
+            GameObject lid = CreateIconPart(iconRoot.transform, $"{Plugin.PluginGuid}.TrashIcon.Lid");
             RectTransform lidRect = lid.GetComponent<RectTransform>();
 
             lidRect.anchorMin = new Vector2(0.10f, 0.74f);
@@ -234,7 +232,7 @@ namespace HexQuickStackStorage
             lidRect.offsetMin = Vector2.zero;
             lidRect.offsetMax = Vector2.zero;
 
-            GameObject handle = CreateIconPart(iconRoot.transform, "Handle");
+            GameObject handle = CreateIconPart(iconRoot.transform, $"{Plugin.PluginGuid}.TrashIcon.Handle");
             RectTransform handleRect = handle.GetComponent<RectTransform>();
 
             handleRect.anchorMin = new Vector2(0.36f, 0.85f);
@@ -263,7 +261,7 @@ namespace HexQuickStackStorage
 
         private static void CreateTrashSlot(Transform parent, float x)
         {
-            GameObject slot = new GameObject("Slot", typeof(RectTransform), typeof(Image));
+            GameObject slot = new GameObject($"{Plugin.PluginGuid}.TrashIcon.Slot", typeof(RectTransform), typeof(Image));
             RectTransform rect = slot.GetComponent<RectTransform>();
 
             rect.SetParent(parent, false);
@@ -360,7 +358,7 @@ namespace HexQuickStackStorage
 
         private static void SetButtonText(GameObject buttonObject, string text)
         {
-            TMP_Text label = buttonObject.GetComponentInChildren<TMP_Text>(true);
+            var label = buttonObject.GetComponentInChildren<TMP_Text>(true);
 
             if (label != null)
             {
@@ -369,7 +367,7 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            Text legacyLabel = buttonObject.GetComponentInChildren<Text>(true);
+            var legacyLabel = buttonObject.GetComponentInChildren<Text>(true);
 
             if (legacyLabel != null)
             {
@@ -448,22 +446,32 @@ namespace HexQuickStackStorage
 
         private static void OnTrashClicked()
         {
-            Player player = Player.m_localPlayer;
+            var player = Player.m_localPlayer;
 
             if (player == null || _inventoryGui == null)
             {
                 return;
             }
 
-            ItemDrop.ItemData dragItem = DragItemField?.GetValue(_inventoryGui) as ItemDrop.ItemData;
+            var dragItem = DragItemField?.GetValue(_inventoryGui) as ItemDrop.ItemData;
+            UnityAction deleteAction;
 
             if (dragItem != null)
             {
-                TrashService.DeleteDraggedItem(_inventoryGui, player);
+                deleteAction = () => TrashService.DeleteDraggedItem(_inventoryGui, player);
+            }
+            else
+            {
+                deleteAction = () => TrashService.DeleteMarkedItems(player);
+            }
+
+            if (Plugin.EnableDeleteConfirmation)
+            {
+                DialogUiController.ShowDeleteConfirmation(_inventoryGui, deleteAction);
                 return;
             }
 
-            TrashService.DeleteMarkedItems(player);
+            deleteAction.Invoke();
         }
     }
 }
