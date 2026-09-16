@@ -3,6 +3,16 @@
 ## v1.3.0
 
 ### Added
+- Added a confirmation dialog before deleting items.
+- Added a configurable option to enable or disable delete confirmation.
+- Added a "Don't show this confirmation again" checkbox to the delete confirmation dialog.
+- Added a confirmation message when items are successfully deleted.
+
+### Changed
+- The delete confirmation dialog can be dragged to reposition it.
+- Delete confirmation is skipped when it has been disabled through the configuration or confirmation dialog.
+- Item deletion messages are now displayed in the center of the screen.
+- The "Items Deleted" message is only shown when at least one item was actually deleted.
 
 ## v1.2.0
 

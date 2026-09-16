@@ -125,6 +125,7 @@ Configuration options include:
 - Trash modifier key
 - Favorite modifier key
 - Automatic chest sorting
+- Delete confirmation
 
 The Trash and Favorite modifier keys cannot use the same key.
 
