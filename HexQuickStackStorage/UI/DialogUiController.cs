@@ -94,7 +94,7 @@ namespace HexQuickStackStorage.UI
                 dragHandler.Initialize(dialogRect);
             }
 
-            CreateDontShowAgainToggle(dialog, message);
+            CreateDontShowAgainToggle(dialog, message, yesButton, cancelButton);
         }
 
         private static void ConfigureDeleteConfirmationActions(UnityAction onConfirm)
@@ -114,6 +114,11 @@ namespace HexQuickStackStorage.UI
                 yesButton.onClick = new Button.ButtonClickedEvent();
                 yesButton.onClick.AddListener(() =>
                 {
+                    if (_dontShowAgainToggle != null && _dontShowAgainToggle.isOn)
+                    {
+                        Plugin.SetDeleteConfirmationEnabled(false);
+                    }
+
                     HideDeleteConfirmation();
                     onConfirm?.Invoke();
                 });
@@ -154,7 +159,12 @@ namespace HexQuickStackStorage.UI
             }
         }
 
-        private static void CreateDontShowAgainToggle(Transform dialog, TMP_Text textTemplate)
+        private static void CreateDontShowAgainToggle(
+            Transform dialog,
+            TMP_Text textTemplate,
+            Button yesButton,
+            Button cancelButton
+        )
         {
             if (_dontShowAgainToggle != null)
             {
@@ -167,18 +177,83 @@ namespace HexQuickStackStorage.UI
                 return;
             }
 
-            var toggleObject = new GameObject($"{Plugin.PluginGuid}.DontShowAgainToggle", typeof(RectTransform), typeof(Toggle));
+            var toggleObject = new GameObject(
+                $"{Plugin.PluginGuid}.DontShowAgainToggle",
+                typeof(RectTransform),
+                typeof(Toggle)
+            );
+
             toggleObject.transform.SetParent(dialog, false);
 
             var toggleRect = toggleObject.GetComponent<RectTransform>();
             toggleRect.anchorMin = new Vector2(0.5f, 0.5f);
             toggleRect.anchorMax = new Vector2(0.5f, 0.5f);
             toggleRect.pivot = new Vector2(0.5f, 0.5f);
-            toggleRect.anchoredPosition = new Vector2(0f, 10f);
-            toggleRect.sizeDelta = new Vector2(350f, 30f);
+            toggleRect.sizeDelta = new Vector2(290f, 30f);
+
+            float buttonBottom = -80f;
+
+            if (yesButton != null)
+            {
+                var yesRect = yesButton.transform as RectTransform;
+
+                if (yesRect != null)
+                {
+                    buttonBottom = yesRect.anchoredPosition.y - (yesRect.rect.height * 0.5f);
+                }
+            }
+            else if (cancelButton != null)
+            {
+                var cancelRect = cancelButton.transform as RectTransform;
+
+                if (cancelRect != null)
+                {
+                    buttonBottom = cancelRect.anchoredPosition.y - (cancelRect.rect.height * 0.5f);
+                }
+            }
+
+            toggleRect.anchoredPosition = new Vector2(0f, buttonBottom - 25f);
 
             _dontShowAgainToggle = toggleObject.GetComponent<Toggle>();
             _dontShowAgainToggle.isOn = false;
+
+            var checkboxObject = new GameObject(
+                $"{Plugin.PluginGuid}.DontShowAgainToggle.CheckboxBackground",
+                typeof(RectTransform),
+                typeof(Image)
+            );
+
+            checkboxObject.transform.SetParent(toggleObject.transform, false);
+
+            var checkboxRect = checkboxObject.GetComponent<RectTransform>();
+            checkboxRect.anchorMin = new Vector2(0f, 0.5f);
+            checkboxRect.anchorMax = new Vector2(0f, 0.5f);
+            checkboxRect.pivot = new Vector2(0f, 0.5f);
+            checkboxRect.anchoredPosition = Vector2.zero;
+            checkboxRect.sizeDelta = new Vector2(20f, 20f);
+
+            var checkboxImage = checkboxObject.GetComponent<Image>();
+            checkboxImage.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+
+            var checkmarkObject = new GameObject(
+                $"{Plugin.PluginGuid}.DontShowAgainToggle.Checkmark",
+                typeof(RectTransform),
+                typeof(Image)
+            );
+
+            checkmarkObject.transform.SetParent(checkboxObject.transform, false);
+
+            var checkmarkRect = checkmarkObject.GetComponent<RectTransform>();
+            checkmarkRect.anchorMin = Vector2.zero;
+            checkmarkRect.anchorMax = Vector2.one;
+            checkmarkRect.offsetMin = new Vector2(4f, 4f);
+            checkmarkRect.offsetMax = new Vector2(-4f, -4f);
+
+            var checkmarkImage = checkmarkObject.GetComponent<Image>();
+            checkmarkImage.color = Color.white;
+
+            _dontShowAgainToggle.targetGraphic = checkboxImage;
+            _dontShowAgainToggle.graphic = checkmarkImage;
 
             var labelObject = Object.Instantiate(textTemplate.gameObject, toggleObject.transform);
             labelObject.name = $"{Plugin.PluginGuid}.DontShowAgainToggle.Label";
