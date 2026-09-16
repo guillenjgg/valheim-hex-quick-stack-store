@@ -103,6 +103,8 @@ namespace HexQuickStackStorage
             }
 
             SetupDragItemMethod?.Invoke(inventoryGui, new object[] { null, null, 1 });
+
+            ShowItemsDeletedMessage(player);
         }
 
         internal static void DeleteMarkedItems(Player player)
@@ -121,6 +123,7 @@ namespace HexQuickStackStorage
 
             List<ItemDrop.ItemData> items = new List<ItemDrop.ItemData>(inventory.GetAllItems());
             bool protectedItemSkipped = false;
+            bool itemDeleted = false;
 
             foreach (ItemDrop.ItemData item in items)
             {
@@ -145,12 +148,20 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                inventory.RemoveItem(item);
+                if (inventory.RemoveItem(item))
+                {
+                    itemDeleted = true;
+                }
             }
 
             if (protectedItemSkipped)
             {
                 ShowProtectedItemMessage(player);
+            }
+
+            if (itemDeleted)
+            {
+                ShowItemsDeletedMessage(player);
             }
         }
 
@@ -204,6 +215,17 @@ namespace HexQuickStackStorage
             itemNames.Sort(StringComparer.Ordinal);
 
             File.WriteAllLines(JunkFilePath, itemNames);
+        }
+
+        private static void ShowItemsDeletedMessage(Player player)
+        {
+            player.Message(
+                MessageHud.MessageType.Center,
+                "Items Deleted",
+                0,
+                null,
+                false
+            );
         }
 
         private static void ShowProtectedItemMessage(Player player)

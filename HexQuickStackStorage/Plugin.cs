@@ -11,9 +11,9 @@ namespace HexQuickStackStorage
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        private const string PluginGuid = "com.hex.quickstackstorage";
+        internal const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.2.0";
+        private const string PluginVersion = "1.3.0";
 
         private const KeyCode DefaultTrashModifierKey = KeyCode.LeftShift;
         private const KeyCode DefaultFavoriteModifierKey = KeyCode.LeftControl;
@@ -27,6 +27,7 @@ namespace HexQuickStackStorage
         private ConfigEntry<KeyCode> _favoriteModifierKey;
         private ConfigEntry<bool> _enableChestAutoSorting;
         private ConfigEntry<ContainerAccessModeEnum> _containerAccessMode;
+        private ConfigEntry<bool> _enableDeleteConfirmation;
 
         private Harmony _harmonyInstance;
         private bool _isValidatingModifierKeys;
@@ -38,6 +39,7 @@ namespace HexQuickStackStorage
         internal static KeyCode FavoriteModifierKey => Instance?._favoriteModifierKey != null ? Instance._favoriteModifierKey.Value : DefaultFavoriteModifierKey;
         internal static bool EnableChestAutoSorting => Instance?._enableChestAutoSorting != null && Instance._enableChestAutoSorting.Value;
         internal static ContainerAccessModeEnum ContainerAccessMode => Instance?._containerAccessMode != null ? Instance._containerAccessMode.Value : ContainerAccessModeEnum.CharacterOwned;
+        internal static bool EnableDeleteConfirmation => Instance?._enableDeleteConfirmation != null && Instance._enableDeleteConfirmation.Value;
 
         private void Awake()
         {
@@ -87,6 +89,13 @@ namespace HexQuickStackStorage
                 "ContainerAccessMode",
                 ContainerAccessModeEnum.CharacterOwned,
                 "Controls which containers Quick Stack can use. CharacterOwned only uses containers created by the current character. Accessible allows any public container the character can access."
+            );
+
+            _enableDeleteConfirmation = Config.Bind(
+                "Inventory",
+                "EnableDeleteConfirmation",
+                true,
+                "Enable a confirmation dialog when deleting items marked as trash."
             );
 
             _trashModifierKey.SettingChanged += OnModifierKeyChanged;
@@ -140,6 +149,16 @@ namespace HexQuickStackStorage
             }
 
             QuickStackService.QuickStack(player);
+        }
+
+        internal static void SetDeleteConfirmationEnabled(bool enabled)
+        {
+            if (Instance?._enableDeleteConfirmation == null)
+            {
+                return;
+            }
+
+            Instance._enableDeleteConfirmation.Value = enabled;
         }
 
         private void OnDestroy()

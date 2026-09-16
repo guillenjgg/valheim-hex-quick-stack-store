@@ -17,7 +17,7 @@
     <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\AppData\Roaming\r2modmanPlus-local\Valheim\profiles\Valheim1.0Release\BepInEx\plugins\Hex_Viking-HexQuickStackStorage\</OutputPath>
+    <OutputPath>..\..\..\..\..\AppData\Roaming\r2modmanPlus-local\Valheim\profiles\Dev\BepInEx\plugins\Hex_Viking-HexQuickStackStorage\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -102,6 +102,8 @@
     <Compile Include="Services\ItemStateService.cs" />
     <Compile Include="Services\QuickStackService.cs" />
     <Compile Include="Services\TrashService.cs" />
+    <Compile Include="UI\DialogDragHandler.cs" />
+    <Compile Include="UI\DialogUiController.cs" />
     <Compile Include="UI\InventoryUiController.cs" />
     <Compile Include="UI\InventoryBorderRenderer.cs" />
   </ItemGroup>
