@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using ServerSync;
 using System;
 using System.Reflection;
 using UnityEngine;
@@ -13,7 +14,14 @@ namespace HexQuickStackStorage
     {
         internal const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.3.0";
+        private const string PluginVersion = "1.4.0";
+
+        private static readonly ConfigSync ConfigSync = new ConfigSync(PluginGuid)
+        {
+            DisplayName = PluginName,
+            CurrentVersion = PluginVersion,
+            MinimumRequiredVersion = PluginVersion
+        };
 
         private const KeyCode DefaultTrashModifierKey = KeyCode.LeftShift;
         private const KeyCode DefaultFavoriteModifierKey = KeyCode.LeftControl;
@@ -26,8 +34,10 @@ namespace HexQuickStackStorage
         private ConfigEntry<KeyCode> _trashModifierKey;
         private ConfigEntry<KeyCode> _favoriteModifierKey;
         private ConfigEntry<bool> _enableChestAutoSorting;
+        private ConfigEntry<bool> _enableAutoStoreTrophies;
         private ConfigEntry<ContainerAccessModeEnum> _containerAccessMode;
         private ConfigEntry<bool> _enableDeleteConfirmation;
+        private static ConfigEntry<bool> _lockConfiguration;
 
         private Harmony _harmonyInstance;
         private bool _isValidatingModifierKeys;
@@ -38,6 +48,7 @@ namespace HexQuickStackStorage
         internal static KeyCode TrashModifierKey => Instance?._trashModifierKey != null ? Instance._trashModifierKey.Value : DefaultTrashModifierKey;
         internal static KeyCode FavoriteModifierKey => Instance?._favoriteModifierKey != null ? Instance._favoriteModifierKey.Value : DefaultFavoriteModifierKey;
         internal static bool EnableChestAutoSorting => Instance?._enableChestAutoSorting != null && Instance._enableChestAutoSorting.Value;
+        internal static bool EnableAutoStoreTrophies => Instance?._enableAutoStoreTrophies != null && Instance._enableAutoStoreTrophies.Value;
         internal static ContainerAccessModeEnum ContainerAccessMode => Instance?._containerAccessMode != null ? Instance._containerAccessMode.Value : ContainerAccessModeEnum.CharacterOwned;
         internal static bool EnableDeleteConfirmation => Instance?._enableDeleteConfirmation != null && Instance._enableDeleteConfirmation.Value;
 
@@ -45,6 +56,15 @@ namespace HexQuickStackStorage
         {
             Instance = this;
             Log = Logger;
+
+            _lockConfiguration = Config.Bind(
+                "Server",
+                "LockConfiguration",
+                true,
+                "Locks synchronized configuration settings to the server's values."
+            );
+
+            ConfigSync.AddLockingConfigEntry(_lockConfiguration);
 
             _searchRadius = Config.Bind(
                 "Chests",
@@ -55,6 +75,8 @@ namespace HexQuickStackStorage
                     new AcceptableValueRange<float>(5f, 150f)
                 )
             );
+
+            ConfigSync.AddConfigEntry(_searchRadius);
 
             _quickStackShortcut = Config.Bind(
                 "Chests",
@@ -84,12 +106,25 @@ namespace HexQuickStackStorage
                 "Automatically sort a chest when it is opened."
             );
 
+            ConfigSync.AddConfigEntry(_enableChestAutoSorting);
+
+            _enableAutoStoreTrophies = Config.Bind(
+                "Chests",
+                "EnableAutoStoreTrophies",
+                false,
+                "Automatically store trophies when quick stacking into containers that already contain any trophy."
+            );
+
+            ConfigSync.AddConfigEntry(_enableAutoStoreTrophies);
+
             _containerAccessMode = Config.Bind(
                 "Chests",
                 "ContainerAccessMode",
                 ContainerAccessModeEnum.CharacterOwned,
                 "Controls which containers Quick Stack can use. CharacterOwned only uses containers created by the current character. Accessible allows any public container the character can access."
             );
+
+            ConfigSync.AddConfigEntry(_containerAccessMode);
 
             _enableDeleteConfirmation = Config.Bind(
                 "Inventory",

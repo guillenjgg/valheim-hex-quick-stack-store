@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="ILRepacker" AfterTargets="Build">
+		<ItemGroup>
+			<InputAssemblies Include="$(TargetPath)" />
+			<InputAssemblies Include="$(ProjectDir)..\..\..\publicized_assemblies\ServerSync.dll" />
+
+			<LibraryPaths Include="$(OutputPath)" />
+			<LibraryPaths Include="$(ProjectDir)..\..\..\bepinex_mod_libs" />
+			<LibraryPaths Include="$(ProjectDir)..\..\..\publicized_assemblies" />
+			<LibraryPaths Include="$(ProjectDir)..\..\..\publicized_assemblies\1.0-release" />
+			<LibraryPaths Include="$(ProjectDir)..\..\..\valheim_mod_libraries" />
+		</ItemGroup>
+
+		<ILRepack
+            Parallel="true"
+            DebugInfo="true"
+            Internalize="true"
+            InputAssemblies="@(InputAssemblies)"
+            OutputFile="$(TargetPath)"
+            TargetKind="SameAsPrimaryAssembly"
+            LibraryPath="@(LibraryPaths)" />
+	</Target>
+</Project>

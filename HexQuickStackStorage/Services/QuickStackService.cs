@@ -179,6 +179,11 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
+                if (IsTrophy(item) && !Plugin.EnableAutoStoreTrophies)
+                {
+                    continue;
+                }
+
                 items.Add(item);
             }
 
@@ -199,7 +204,14 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (!containerInventory.ContainsItemByName(item.m_shared.m_name))
+                bool isTrophy = IsTrophy(item);
+                bool containsMatchingItem = containerInventory.ContainsItemByName(item.m_shared.m_name);
+
+                bool containsTrophy = isTrophy && containerInventory
+                    .GetAllItems()
+                    .Exists(IsTrophy);
+
+                if (!containsMatchingItem && !containsTrophy)
                 {
                     continue;
                 }
@@ -308,6 +320,11 @@ namespace HexQuickStackStorage
             }
 
             return DefaultVanillaInventoryRows;
+        }
+
+        private static bool IsTrophy(ItemDrop.ItemData item)
+        {
+            return item?.m_shared?.m_itemType == ItemDrop.ItemData.ItemType.Trophy;
         }
     }
 }
