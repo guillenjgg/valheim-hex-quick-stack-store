@@ -34,6 +34,7 @@ namespace HexQuickStackStorage
         private ConfigEntry<KeyCode> _trashModifierKey;
         private ConfigEntry<KeyCode> _favoriteModifierKey;
         private ConfigEntry<bool> _enableChestAutoSorting;
+        private ConfigEntry<bool> _enableAutoStoreTrophies;
         private ConfigEntry<ContainerAccessModeEnum> _containerAccessMode;
         private ConfigEntry<bool> _enableDeleteConfirmation;
         private static ConfigEntry<bool> _lockConfiguration;
@@ -47,6 +48,7 @@ namespace HexQuickStackStorage
         internal static KeyCode TrashModifierKey => Instance?._trashModifierKey != null ? Instance._trashModifierKey.Value : DefaultTrashModifierKey;
         internal static KeyCode FavoriteModifierKey => Instance?._favoriteModifierKey != null ? Instance._favoriteModifierKey.Value : DefaultFavoriteModifierKey;
         internal static bool EnableChestAutoSorting => Instance?._enableChestAutoSorting != null && Instance._enableChestAutoSorting.Value;
+        internal static bool EnableAutoStoreTrophies => Instance?._enableAutoStoreTrophies != null && Instance._enableAutoStoreTrophies.Value;
         internal static ContainerAccessModeEnum ContainerAccessMode => Instance?._containerAccessMode != null ? Instance._containerAccessMode.Value : ContainerAccessModeEnum.CharacterOwned;
         internal static bool EnableDeleteConfirmation => Instance?._enableDeleteConfirmation != null && Instance._enableDeleteConfirmation.Value;
 
@@ -105,6 +107,15 @@ namespace HexQuickStackStorage
             );
 
             ConfigSync.AddConfigEntry(_enableChestAutoSorting);
+
+            _enableAutoStoreTrophies = Config.Bind(
+                "Chests",
+                "EnableAutoStoreTrophies",
+                false,
+                "Automatically store trophies when quick stacking into containers that already contain any trophy."
+            );
+
+            ConfigSync.AddConfigEntry(_enableAutoStoreTrophies);
 
             _containerAccessMode = Config.Bind(
                 "Chests",

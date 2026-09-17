@@ -2,13 +2,11 @@
 
 Inspired by Goldenrevolver's **Quick Stack Store Sort Trash** mod.
 
-This mod adds Quick Stack, inventory sorting, chest sorting, trash management, and item favorites.
+This mod adds Quick Stack, inventory sorting, chest sorting, trash management, item favorites, trophy auto storage, and ServerSync support.
 
-The mod has been designed with multiplayer compatibility in mind, but it has not been tested in multiplayer yet.
+The mod has been designed with multiplayer compatibility in mind. ServerSync is supported for selected gameplay-affecting configuration values.
 
-ServerSync is currently not supported, so multiplayer behavior may still be inconsistent.
-
-Any multiplayer feedback is welcome. I don't currently have testers for multiplayer scenarios.
+Any multiplayer feedback is welcome.
 
 ## Quick Stack Access Modes and Limitations
 
@@ -22,12 +20,16 @@ Ward-protected containers are only used when the character has access to the pro
 Quick Stack also has a few limitations:
 
 - Containers that are currently in use are skipped during nearby Quick Stack.
-- Items are only moved to containers that already contain that item type.
+- Normal items are only moved to containers that already contain that item type.
 - Empty containers are not used.
 - Favorited, equipped, and hotbar items are ignored.
 - Only items inside the normal player inventory are considered.
 - A container must have enough stack space or an empty slot for at least part of the item.
 - The configured access mode applies to nearby Quick Stack searches. Manually opened containers can still use the mod's stack and sort actions.
+
+### Trophy Auto Storage
+
+Trophy auto storage can be enabled in the configuration.
 
 ## Instructions
 
@@ -37,7 +39,9 @@ Click the **Q** button in your inventory or use the configured Quick Stack keybo
 
 Quick Stack searches nearby eligible containers and moves matching inventory items into them.
 
-If a container already contains an item type, Quick Stack will fill existing stacks first and then use empty slots in that container if needed.
+For normal items, if a container already contains an item type, Quick Stack will fill existing stacks first and then use empty slots in that container if needed.
+
+When trophy auto storage is enabled, trophies use trophy containers as described above.
 
 ### Sort Inventory
 
@@ -108,12 +112,20 @@ Each file stores one internal item name per line and is updated automatically wh
 
 Deleting either file clears the corresponding saved selections the next time the mod starts.
 
-## Multiplayer
+## Multiplayer and ServerSync
 
-- Client-side mod
-- Does not currently support ServerSync
-- Has not been tested in multiplayer
-- Multiplayer behavior may be inconsistent
+HexQuickStackStorage includes ServerSync support.
+
+The following settings are synchronized from the server:
+
+- Quick Stack search radius
+- Container access mode
+- Automatic chest sorting
+- Trophy auto storage
+
+The server can also lock synchronized configuration values so connected clients use the server's settings.
+
+Client-only settings such as keyboard shortcuts and inventory modifier keys are not synchronized.
 
 ## Configuration
 
@@ -122,10 +134,12 @@ Configuration options include:
 - Quick Stack search radius
 - Quick Stack keyboard shortcut
 - Container access mode
+- Automatic chest sorting
+- Trophy auto storage
 - Trash modifier key
 - Favorite modifier key
-- Automatic chest sorting
 - Delete confirmation
+- Server configuration locking
 
 The Trash and Favorite modifier keys cannot use the same key.
 
