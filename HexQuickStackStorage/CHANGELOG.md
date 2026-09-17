@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.0
+
+### Added
+- ServerSync integration
+
 ## v1.3.0
 
 ### Added

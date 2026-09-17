@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using ServerSync;
 using System;
 using System.Reflection;
 using UnityEngine;
@@ -13,7 +14,14 @@ namespace HexQuickStackStorage
     {
         internal const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.3.0";
+        private const string PluginVersion = "1.4.0";
+
+        private static readonly ConfigSync ConfigSync = new ConfigSync(PluginGuid)
+        {
+            DisplayName = PluginName,
+            CurrentVersion = PluginVersion,
+            MinimumRequiredVersion = PluginVersion
+        };
 
         private const KeyCode DefaultTrashModifierKey = KeyCode.LeftShift;
         private const KeyCode DefaultFavoriteModifierKey = KeyCode.LeftControl;
@@ -28,6 +36,7 @@ namespace HexQuickStackStorage
         private ConfigEntry<bool> _enableChestAutoSorting;
         private ConfigEntry<ContainerAccessModeEnum> _containerAccessMode;
         private ConfigEntry<bool> _enableDeleteConfirmation;
+        private static ConfigEntry<bool> _lockConfiguration;
 
         private Harmony _harmonyInstance;
         private bool _isValidatingModifierKeys;
@@ -46,6 +55,15 @@ namespace HexQuickStackStorage
             Instance = this;
             Log = Logger;
 
+            _lockConfiguration = Config.Bind(
+                "Server",
+                "LockConfiguration",
+                true,
+                "Locks synchronized configuration settings to the server's values."
+            );
+
+            ConfigSync.AddLockingConfigEntry(_lockConfiguration);
+
             _searchRadius = Config.Bind(
                 "Chests",
                 "SearchRadius",
@@ -55,6 +73,8 @@ namespace HexQuickStackStorage
                     new AcceptableValueRange<float>(5f, 150f)
                 )
             );
+
+            ConfigSync.AddConfigEntry(_searchRadius);
 
             _quickStackShortcut = Config.Bind(
                 "Chests",
@@ -84,12 +104,16 @@ namespace HexQuickStackStorage
                 "Automatically sort a chest when it is opened."
             );
 
+            ConfigSync.AddConfigEntry(_enableChestAutoSorting);
+
             _containerAccessMode = Config.Bind(
                 "Chests",
                 "ContainerAccessMode",
                 ContainerAccessModeEnum.CharacterOwned,
                 "Controls which containers Quick Stack can use. CharacterOwned only uses containers created by the current character. Accessible allows any public container the character can access."
             );
+
+            ConfigSync.AddConfigEntry(_containerAccessMode);
 
             _enableDeleteConfirmation = Config.Bind(
                 "Inventory",
