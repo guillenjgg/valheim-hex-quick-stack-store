@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.4.1
+
+### Added
+- Compiled against Valheim v1.0.14.
+
+### Fixed
+- Fixed `Accessible` container access mode allowing Quick Stack to use world-generated containers.
+- World-generated containers are now excluded using Valheim's player-placed container detection.
+
 ## v1.4.0
 
 ### Added

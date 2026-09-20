@@ -6,7 +6,7 @@ This mod adds Quick Stack, inventory sorting, chest sorting, trash management, i
 
 The mod has been designed with multiplayer compatibility in mind. ServerSync is supported for selected gameplay-affecting configuration values.
 
-Any multiplayer feedback is welcome.
+I've only tested on a dedicated server with one player, so I have not tested multiplayer scenarios. Any multiplayer feedback is welcome.
 
 ## Quick Stack Access Modes and Limitations
 

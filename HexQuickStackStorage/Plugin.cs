@@ -14,7 +14,7 @@ namespace HexQuickStackStorage
     {
         internal const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.4.0";
+        private const string PluginVersion = "1.4.1";
 
         private static readonly ConfigSync ConfigSync = new ConfigSync(PluginGuid)
         {
@@ -60,7 +60,7 @@ namespace HexQuickStackStorage
             _lockConfiguration = Config.Bind(
                 "Server",
                 "LockConfiguration",
-                true,
+                false,
                 "Locks synchronized configuration settings to the server's values."
             );
 
