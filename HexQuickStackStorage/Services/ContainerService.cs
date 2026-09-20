@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HarmonyLib;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
@@ -6,7 +7,8 @@ namespace HexQuickStackStorage
 {
     internal static class ContainerService
     {
-        private static readonly MethodInfo CheckAccessMethod = typeof(Container).GetMethod("CheckAccess", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        private static readonly MethodInfo CheckAccessMethod = AccessTools.Method(typeof(Container), "CheckAccess");
+        private static readonly FieldInfo PieceField = AccessTools.Field(typeof(Container), "m_piece");
 
         internal static List<Container> GetNearbyContainers(Player player)
         {
@@ -78,7 +80,7 @@ namespace HexQuickStackStorage
                     return WasCreatedByPlayer(container, playerId);
 
                 case ContainerAccessModeEnum.Accessible:
-                    return CheckAccess(container, playerId);
+                    return !IsWorldGeneratedChest(container) && CheckAccess(container, playerId);
 
                 default:
                     return false;
@@ -100,6 +102,23 @@ namespace HexQuickStackStorage
             }
 
             return piece.GetCreator() == playerId;
+        }
+
+        private static bool IsWorldGeneratedChest(Container container)
+        {
+            if (container == null || PieceField == null)
+            {
+                return false;
+            }
+
+            Piece piece = PieceField.GetValue(container) as Piece;
+
+            if (piece == null)
+            {
+                return false;
+            }
+
+            return !piece.IsPlacedByPlayer();
         }
 
         private static bool CheckAccess(Container container, long playerId)

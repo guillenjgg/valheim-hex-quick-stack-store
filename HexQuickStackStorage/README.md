@@ -6,7 +6,7 @@ This mod adds Quick Stack, inventory sorting, chest sorting, trash management, i
 
 The mod has been designed with multiplayer compatibility in mind. ServerSync is supported for selected gameplay-affecting configuration values.
 
-Any multiplayer feedback is welcome.
+I've only tested on a dedicated server with one player, so I have not tested multiplayer scenarios. Any multiplayer feedback is welcome.
 
 ## Quick Stack Access Modes and Limitations
 
@@ -57,9 +57,11 @@ Sorting will:
 
 ### Sort Chests
 
-When a chest is open, click the **Sort** button beneath the chest inventory to sort it.
+When a supported chest or container is open, click the **Sort** button beneath the container inventory to sort it.
 
-Automatic chest sorting can also be enabled in the configuration. When enabled, a chest is sorted when successfully opened.
+The Sort button is only shown for supported Valheim containers. Custom container inventories provided by other mods may not support sorting.
+
+Automatic chest sorting can also be enabled in the configuration. When enabled, a supported container is sorted when successfully opened.
 
 ### Favorite Items
 

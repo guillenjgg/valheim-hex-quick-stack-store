@@ -12,7 +12,7 @@ namespace HexQuickStackStorage.Patches
             InventoryUiController.Initialize(__instance);
         }
 
-        [HarmonyPatch(typeof(InventoryGui), "OnStackAll")]
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.OnStackAll))]
         [HarmonyPrefix]
         private static bool OnStackAllPrefix()
         {
@@ -20,19 +20,33 @@ namespace HexQuickStackStorage.Patches
 
             if (player == null)
             {
-                return false;
+                return true;
             }
 
             Container container = InventoryUiController.GetCurrentContainer();
 
             if (container == null)
             {
-                return false;
+                return true;
             }
 
             QuickStackService.QuickStack(player, container);
 
             return false;
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Show))]
+        [HarmonyPostfix]
+        private static void ShowPostfix(Container container)
+        {
+            InventoryUiController.SetContainerSortButtonVisible(container != null);
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.CloseContainer))]
+        [HarmonyPostfix]
+        private static void CloseContainerPostfix()
+        {
+            InventoryUiController.SetContainerSortButtonVisible(false);
         }
     }
 }

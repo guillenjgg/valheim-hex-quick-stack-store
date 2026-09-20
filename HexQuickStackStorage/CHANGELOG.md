@@ -1,10 +1,21 @@
 # Changelog
 
+## v1.4.1
+
+### Added
+- Compiled against Valheim v1.0.14.
+
+### Fixed
+- Fixed `Accessible` container access mode allowing Quick Stack to use world-generated containers.
+- World-generated containers are now excluded using Valheim's player-placed container detection.
+- Fixed compatibility with custom container mods that use Valheim's Place Stacks functionality.
+- Fixed the container Sort button appearing on unsupported custom container inventories.
+
 ## v1.4.0
 
 ### Added
-- ServerSync integration
-- Configuration option to auto stack trophies
+- ServerSync integration.
+- Configuration option to auto stack trophies.
 
 ## v1.3.0
 
