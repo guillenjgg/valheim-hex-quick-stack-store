@@ -57,9 +57,11 @@ Sorting will:
 
 ### Sort Chests
 
-When a chest is open, click the **Sort** button beneath the chest inventory to sort it.
+When a supported chest or container is open, click the **Sort** button beneath the container inventory to sort it.
 
-Automatic chest sorting can also be enabled in the configuration. When enabled, a chest is sorted when successfully opened.
+The Sort button is only shown for supported Valheim containers. Custom container inventories provided by other mods may not support sorting.
+
+Automatic chest sorting can also be enabled in the configuration. When enabled, a supported container is sorted when successfully opened.
 
 ### Favorite Items
 
