@@ -12,7 +12,7 @@ namespace HexQuickStackStorage.Patches
             InventoryUiController.Initialize(__instance);
         }
 
-        [HarmonyPatch(typeof(InventoryGui), "OnStackAll")]
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.OnStackAll))]
         [HarmonyPrefix]
         private static bool OnStackAllPrefix()
         {
@@ -20,14 +20,14 @@ namespace HexQuickStackStorage.Patches
 
             if (player == null)
             {
-                return false;
+                return true;
             }
 
             Container container = InventoryUiController.GetCurrentContainer();
 
             if (container == null)
             {
-                return false;
+                return true;
             }
 
             QuickStackService.QuickStack(player, container);
