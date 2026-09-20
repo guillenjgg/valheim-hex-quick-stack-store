@@ -34,5 +34,19 @@ namespace HexQuickStackStorage.Patches
 
             return false;
         }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Show))]
+        [HarmonyPostfix]
+        private static void ShowPostfix(Container container)
+        {
+            InventoryUiController.SetContainerSortButtonVisible(container != null);
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.CloseContainer))]
+        [HarmonyPostfix]
+        private static void CloseContainerPostfix()
+        {
+            InventoryUiController.SetContainerSortButtonVisible(false);
+        }
     }
 }

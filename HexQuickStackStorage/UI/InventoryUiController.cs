@@ -49,6 +49,28 @@ namespace HexQuickStackStorage
             return CurrentContainerField?.GetValue(_inventoryGui) as Container;
         }
 
+        internal static void SetContainerSortButtonVisible(bool visible)
+        {
+            if (_inventoryGui == null || _inventoryGui.m_stackAllButton == null)
+            {
+                return;
+            }
+
+            Transform parent = _inventoryGui.m_stackAllButton.transform.parent;
+
+            if (parent == null)
+            {
+                return;
+            }
+
+            Transform sortButton = parent.Find(ContainerSortButtonName);
+
+            if (sortButton != null)
+            {
+                sortButton.gameObject.SetActive(visible);
+            }
+        }
+
         private static void CreateButtons()
         {
             if (_inventoryGui == null || _inventoryGui.m_player == null || _inventoryGui.m_takeAllButton == null)
@@ -135,7 +157,7 @@ namespace HexQuickStackStorage
             SetButtonText(buttonObject, "Sort");
             PositionContainerSortButton(buttonObject, template.gameObject);
 
-            buttonObject.SetActive(true);
+            buttonObject.SetActive(false);
 
             return button;
         }
