@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using HexQuickStackStorage.Components;
-using HexQuickStackStorage.UI;
+using HexQuickStackStorage.GamePad;
 using System;
 using System.Reflection;
 using TMPro;
@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace HexQuickStackStorage
+namespace HexQuickStackStorage.UI
 {
     internal static class InventoryUiController
     {
@@ -40,6 +40,7 @@ namespace HexQuickStackStorage
             _inventoryGui = inventoryGui;
 
             CreateButtons();
+            InventoryGamePadController.Initialize(inventoryGui);
         }
 
         internal static Container GetCurrentContainer()
@@ -467,7 +468,12 @@ namespace HexQuickStackStorage
 
         private static void OnSortClicked()
         {
-            Plugin.Log.LogInfo("[GamePad Debug] Sort UI button OnClick invoked.");
+            Player player = Player.m_localPlayer;
+
+            if (player == null)
+            {
+                return;
+            }
 
             InventorySortService.SortPlayerInventory();
         }
@@ -486,8 +492,6 @@ namespace HexQuickStackStorage
 
         private static void OnQuickStackClicked()
         {
-            Plugin.Log.LogInfo("[GamePad Debug] Quick Stack UI button OnClick invoked.");
-
             Player player = Player.m_localPlayer;
 
             if (player == null)
@@ -526,26 +530,6 @@ namespace HexQuickStackStorage
             }
 
             deleteAction.Invoke();
-        }
-
-        private static void LogGamePadBinding(string label, GameObject buttonObject)
-        {
-            UIGamePad gamePad = buttonObject.GetComponent<UIGamePad>();
-
-            if (gamePad == null)
-            {
-                Plugin.Log.LogInfo($"[GamePad Debug] {label}: No UIGamePad component.");
-                return;
-            }
-
-            Plugin.Log.LogInfo(
-                $"[GamePad Debug] {label}: " +
-                $"GameObject={buttonObject.name}, " +
-                $"Enabled={gamePad.enabled}, " +
-                $"ActiveInHierarchy={buttonObject.activeInHierarchy}, " +
-                $"ZInputKey='{gamePad.m_zinputKey}', " +
-                $"KeyCode={gamePad.m_keyCode}"
-            );
         }
     }
 }

@@ -71,7 +71,7 @@ namespace HexQuickStackStorage.Components
             }
 
             GameObject textObject = Instantiate(textTemplate.gameObject, tooltipObject.transform);
-            textObject.name = "Text";
+            textObject.name = $"{Plugin.PluginGuid}.QuickStackTooltip.Text";
 
             RectTransform textRectTransform = textObject.GetComponent<RectTransform>();
             textRectTransform.anchorMin = Vector2.zero;

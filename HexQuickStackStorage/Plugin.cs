@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using HexQuickStackStorage.UI;
 using ServerSync;
 using System;
 using System.Reflection;

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using HexQuickStackStorage.UI;
 
 namespace HexQuickStackStorage.Patches
 {
