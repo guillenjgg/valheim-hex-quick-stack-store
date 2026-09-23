@@ -40,6 +40,7 @@ namespace HexQuickStackStorage.Patches
         private static void ShowPostfix(Container container)
         {
             InventoryUiController.SetContainerSortButtonVisible(container != null);
+            InventoryUiController.SetQuickStackButtonInteractable(container == null);
         }
 
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.CloseContainer))]
@@ -47,6 +48,7 @@ namespace HexQuickStackStorage.Patches
         private static void CloseContainerPostfix()
         {
             InventoryUiController.SetContainerSortButtonVisible(false);
+            InventoryUiController.SetQuickStackButtonInteractable(true);
         }
     }
 }

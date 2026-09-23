@@ -183,6 +183,11 @@ namespace HexQuickStackStorage
                 return;
             }
 
+            if (InventoryUiController.GetCurrentContainer() != null)
+            {
+                return;
+            }
+
             QuickStackService.QuickStack(player);
         }
 
