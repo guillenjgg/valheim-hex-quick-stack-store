@@ -80,6 +80,8 @@ namespace HexQuickStackStorage
 
             Button nativeButton = _inventoryGui.m_takeAllButton;
 
+            LogGamePadBinding("Native TakeAll", nativeButton.gameObject);
+
             CreateActionButton(nativeButton, SortButtonName, "S", 0, OnSortClicked);
             CreateActionButton(nativeButton, QuickStackButtonName, "Q", 1, OnQuickStackClicked);
             CreateContainerSortButton();
@@ -439,6 +441,8 @@ namespace HexQuickStackStorage
 
         private static void OnSortClicked()
         {
+            Plugin.Log.LogInfo("[GamePad Debug] Sort UI button OnClick invoked.");
+
             InventorySortService.SortPlayerInventory();
         }
 
@@ -456,6 +460,8 @@ namespace HexQuickStackStorage
 
         private static void OnQuickStackClicked()
         {
+            Plugin.Log.LogInfo("[GamePad Debug] Quick Stack UI button OnClick invoked.");
+
             Player player = Player.m_localPlayer;
 
             if (player == null)
@@ -494,6 +500,26 @@ namespace HexQuickStackStorage
             }
 
             deleteAction.Invoke();
+        }
+
+        private static void LogGamePadBinding(string label, GameObject buttonObject)
+        {
+            UIGamePad gamePad = buttonObject.GetComponent<UIGamePad>();
+
+            if (gamePad == null)
+            {
+                Plugin.Log.LogInfo($"[GamePad Debug] {label}: No UIGamePad component.");
+                return;
+            }
+
+            Plugin.Log.LogInfo(
+                $"[GamePad Debug] {label}: " +
+                $"GameObject={buttonObject.name}, " +
+                $"Enabled={gamePad.enabled}, " +
+                $"ActiveInHierarchy={buttonObject.activeInHierarchy}, " +
+                $"ZInputKey='{gamePad.m_zinputKey}', " +
+                $"KeyCode={gamePad.m_keyCode}"
+            );
         }
     }
 }
