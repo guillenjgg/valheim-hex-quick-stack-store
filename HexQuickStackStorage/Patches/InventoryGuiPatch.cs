@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using HexQuickStackStorage.GamePad;
 using HexQuickStackStorage.UI;
 
 namespace HexQuickStackStorage.Patches
@@ -40,9 +41,13 @@ namespace HexQuickStackStorage.Patches
         [HarmonyPostfix]
         private static void ShowPostfix(Container container)
         {
-            InventoryUiController.SetContainerSortButtonVisible(container != null);
-            InventoryUiController.SetQuickStackButtonInteractable(container == null);
+            bool containerOpen = container != null;
+
+            InventoryUiController.SetContainerSortButtonVisible(containerOpen);
+            InventoryUiController.SetQuickStackButtonInteractable(!containerOpen);
+            InventoryGamePadController.SetContainerOpen(containerOpen);
         }
+
 
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.CloseContainer))]
         [HarmonyPostfix]
@@ -50,6 +55,7 @@ namespace HexQuickStackStorage.Patches
         {
             InventoryUiController.SetContainerSortButtonVisible(false);
             InventoryUiController.SetQuickStackButtonInteractable(true);
+            InventoryGamePadController.SetContainerOpen(false);
         }
     }
 }
