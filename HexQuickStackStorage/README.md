@@ -8,6 +8,15 @@ The mod has been designed with multiplayer compatibility in mind. ServerSync is 
 
 I've only tested on a dedicated server with one player, so I have not tested multiplayer scenarios. Any multiplayer feedback is welcome.
 
+## Input Support
+
+HexQuickStackStorage is designed and tested primarily for mouse and keyboard.
+
+Gamepad/controller input is not officially supported or tested. Some UI actions may work with a controller through Valheim's built-in navigation, but behavior may be inconsistent or incomplete.
+
+For the intended experience, use mouse and keyboard.
+
+
 ## Quick Stack Access Modes and Limitations
 
 Quick Stack has two configurable container access modes:
