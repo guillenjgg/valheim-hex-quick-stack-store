@@ -96,7 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ContainerAccessModeEnum.cs" />
-    <Compile Include="GamePad\InventoryGamePadController.cs" />
     <Compile Include="Patches\ContainerPatch.cs" />
     <Compile Include="Patches\InventoryGridPatch.cs" />
     <Compile Include="Patches\InventoryGuiPatch.cs" />

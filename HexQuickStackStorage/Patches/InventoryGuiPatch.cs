@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using HexQuickStackStorage.GamePad;
 using HexQuickStackStorage.UI;
 
 namespace HexQuickStackStorage.Patches
@@ -45,7 +44,6 @@ namespace HexQuickStackStorage.Patches
 
             InventoryUiController.SetContainerSortButtonVisible(containerOpen);
             InventoryUiController.SetQuickStackButtonInteractable(!containerOpen);
-            InventoryGamePadController.SetContainerOpen(containerOpen);
         }
 
 
@@ -55,7 +53,6 @@ namespace HexQuickStackStorage.Patches
         {
             InventoryUiController.SetContainerSortButtonVisible(false);
             InventoryUiController.SetQuickStackButtonInteractable(true);
-            InventoryGamePadController.SetContainerOpen(false);
         }
     }
 }

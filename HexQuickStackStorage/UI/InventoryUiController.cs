@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using HexQuickStackStorage.Components;
-using HexQuickStackStorage.GamePad;
 using System;
 using System.Reflection;
 using TMPro;
@@ -40,7 +39,6 @@ namespace HexQuickStackStorage.UI
             _inventoryGui = inventoryGui;
 
             CreateButtons();
-            InventoryGamePadController.Initialize(inventoryGui);
         }
 
         internal static Container GetCurrentContainer()
