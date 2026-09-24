@@ -1,5 +1,5 @@
 ﻿using HarmonyLib;
-using HexQuickStackStorage.UI;
+using HexQuickStackStorage.Components;
 using System;
 using System.Reflection;
 using TMPro;
@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace HexQuickStackStorage
+namespace HexQuickStackStorage.UI
 {
     internal static class InventoryUiController
     {
@@ -26,6 +26,8 @@ namespace HexQuickStackStorage
         private static readonly FieldInfo DragItemField = AccessTools.Field(typeof(InventoryGui), "m_dragItem");
 
         private static InventoryGui _inventoryGui;
+        private static Button _quickStackButton;
+        private static QuickStackTooltipComponent _quickStackTooltip;
 
         internal static void Initialize(InventoryGui inventoryGui)
         {
@@ -71,6 +73,19 @@ namespace HexQuickStackStorage
             }
         }
 
+        internal static void SetQuickStackButtonInteractable(bool interactable)
+        {
+            if (_quickStackButton != null)
+            {
+                _quickStackButton.interactable = interactable;
+            }
+
+            if (_quickStackTooltip != null)
+            {
+                _quickStackTooltip.TooltipEnabled = !interactable;
+            }
+        }
+
         private static void CreateButtons()
         {
             if (_inventoryGui == null || _inventoryGui.m_player == null || _inventoryGui.m_takeAllButton == null)
@@ -81,7 +96,19 @@ namespace HexQuickStackStorage
             Button nativeButton = _inventoryGui.m_takeAllButton;
 
             CreateActionButton(nativeButton, SortButtonName, "S", 0, OnSortClicked);
-            CreateActionButton(nativeButton, QuickStackButtonName, "Q", 1, OnQuickStackClicked);
+
+            _quickStackButton = CreateActionButton(nativeButton, QuickStackButtonName, "Q", 1, OnQuickStackClicked);
+
+            if (_quickStackButton != null)
+            {
+                _quickStackTooltip = _quickStackButton.GetComponent<QuickStackTooltipComponent>();
+
+                if (_quickStackTooltip == null)
+                {
+                    _quickStackTooltip = _quickStackButton.gameObject.AddComponent<QuickStackTooltipComponent>();
+                }
+            }
+
             CreateContainerSortButton();
             CreateTrashButton(OnTrashClicked);
         }
@@ -439,6 +466,13 @@ namespace HexQuickStackStorage
 
         private static void OnSortClicked()
         {
+            Player player = Player.m_localPlayer;
+
+            if (player == null)
+            {
+                return;
+            }
+
             InventorySortService.SortPlayerInventory();
         }
 

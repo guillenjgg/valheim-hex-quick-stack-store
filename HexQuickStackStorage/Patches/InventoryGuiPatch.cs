@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using HexQuickStackStorage.UI;
 
 namespace HexQuickStackStorage.Patches
 {
@@ -39,14 +40,19 @@ namespace HexQuickStackStorage.Patches
         [HarmonyPostfix]
         private static void ShowPostfix(Container container)
         {
-            InventoryUiController.SetContainerSortButtonVisible(container != null);
+            bool containerOpen = container != null;
+
+            InventoryUiController.SetContainerSortButtonVisible(containerOpen);
+            InventoryUiController.SetQuickStackButtonInteractable(!containerOpen);
         }
+
 
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.CloseContainer))]
         [HarmonyPostfix]
         private static void CloseContainerPostfix()
         {
             InventoryUiController.SetContainerSortButtonVisible(false);
+            InventoryUiController.SetQuickStackButtonInteractable(true);
         }
     }
 }

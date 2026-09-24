@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.4.2
+
+### Added
+- Added a tooltip explaining Quick Stack is unavailable while a container is open.
+
+### Fixed
+- Fixed the Quick Stack keyboard shortcut not working while movement or other unrelated keys are held.
+- Quick Stack is now disabled while a container is open to avoid conflicting with the container's Place Stacks action.
+
 ## v1.4.1
 
 ### Added

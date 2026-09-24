@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using HexQuickStackStorage.UI;
 using ServerSync;
 using System;
 using System.Reflection;
@@ -14,7 +15,7 @@ namespace HexQuickStackStorage
     {
         internal const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.4.1";
+        private const string PluginVersion = "1.4.2";
 
         private static readonly ConfigSync ConfigSync = new ConfigSync(PluginGuid)
         {
@@ -163,7 +164,7 @@ namespace HexQuickStackStorage
                 ShowModifierValidationMessage(player);
             }
 
-            if (!QuickStackShortcut.IsDown())
+            if (!IsShortcutDown(_quickStackShortcut.Value))
             {
                 return;
             }
@@ -179,6 +180,11 @@ namespace HexQuickStackStorage
             }
 
             if (Menu.IsVisible())
+            {
+                return;
+            }
+
+            if (InventoryUiController.GetCurrentContainer() != null)
             {
                 return;
             }
@@ -261,6 +267,24 @@ namespace HexQuickStackStorage
             );
 
             _modifierValidationMessagePending = false;
+        }
+
+        private static bool IsShortcutDown(KeyboardShortcut shortcut)
+        {
+            if (!ZInput.GetKeyDown(shortcut.MainKey))
+            {
+                return false;
+            }
+
+            foreach (KeyCode modifier in shortcut.Modifiers)
+            {
+                if (!ZInput.GetKey(modifier))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

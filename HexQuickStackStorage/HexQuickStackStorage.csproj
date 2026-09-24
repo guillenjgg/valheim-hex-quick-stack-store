@@ -37,6 +37,10 @@
       <HintPath>..\..\..\bepinex_mod_libs\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="assembly_guiutils_publicized">
+      <HintPath>..\..\..\publicized_assemblies\v1.0.14\assembly_guiutils_publicized.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="assembly_utils_publicized">
       <HintPath>..\..\..\publicized_assemblies\v1.0.14\assembly_utils_publicized.dll</HintPath>
       <Private>False</Private>
@@ -108,6 +112,7 @@
     <Compile Include="UI\DialogUiController.cs" />
     <Compile Include="UI\InventoryUiController.cs" />
     <Compile Include="UI\InventoryBorderRenderer.cs" />
+    <Compile Include="Components\QuickStackTooltipComponent.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CHANGELOG.md">
