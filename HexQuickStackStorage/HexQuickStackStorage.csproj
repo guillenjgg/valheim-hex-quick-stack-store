@@ -38,15 +38,15 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_guiutils_publicized">
-      <HintPath>..\..\..\publicized_assemblies\v1.0.14\assembly_guiutils_publicized.dll</HintPath>
+      <HintPath>..\..\..\publicized_assemblies\v1.0.16\assembly_guiutils_publicized.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_utils_publicized">
-      <HintPath>..\..\..\publicized_assemblies\v1.0.14\assembly_utils_publicized.dll</HintPath>
+      <HintPath>..\..\..\publicized_assemblies\v1.0.16\assembly_utils_publicized.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_valheim_publicized">
-      <HintPath>..\..\..\publicized_assemblies\v1.0.14\assembly_valheim_publicized.dll</HintPath>
+      <HintPath>..\..\..\publicized_assemblies\v1.0.16\assembly_valheim_publicized.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">

@@ -15,7 +15,7 @@ namespace HexQuickStackStorage
     {
         internal const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.4.2";
+        private const string PluginVersion = "1.4.3";
 
         private static readonly ConfigSync ConfigSync = new ConfigSync(PluginGuid)
         {

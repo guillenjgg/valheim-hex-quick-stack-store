@@ -181,7 +181,7 @@ namespace HexQuickStackStorage.UI
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(OnContainerSortClicked);
 
-            SetButtonText(buttonObject, "Sort");
+            SetButtonText(buttonObject, "S");
             PositionContainerSortButton(buttonObject, template.gameObject);
 
             buttonObject.SetActive(false);
@@ -351,12 +351,14 @@ namespace HexQuickStackStorage.UI
 
             buttonRect.anchorMin = templateRect.anchorMin;
             buttonRect.anchorMax = templateRect.anchorMax;
-            buttonRect.pivot = templateRect.pivot;
-            buttonRect.sizeDelta = templateRect.sizeDelta;
+            buttonRect.pivot = new Vector2(0.5f, 0.5f);
+            buttonRect.sizeDelta = new Vector2(ButtonSize, ButtonSize);
+
+            float templateLeft = templateRect.anchoredPosition.x - (templateRect.rect.width * templateRect.pivot.x);
 
             buttonRect.anchoredPosition = new Vector2(
-                templateRect.anchoredPosition.x,
-                templateRect.anchoredPosition.y - templateRect.rect.height - ButtonSpacing
+                templateLeft - ButtonSpacing - (ButtonSize * 0.5f),
+                templateRect.anchoredPosition.y
             );
         }
 
