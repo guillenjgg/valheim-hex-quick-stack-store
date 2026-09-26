@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.4.3
+
+### Added
+- Compiled against Valheim v1.0.16.
+
+### Changed
+- Changed the container sort button from "Sort" to "S".
+- Repositioned the container sort button to prevent it from overlapping the inventory grid.
+
 ## v1.4.2
 
 ### Added
