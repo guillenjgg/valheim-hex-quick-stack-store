@@ -227,6 +227,7 @@ namespace HexQuickStackStorage
 
             Log?.LogInfo($"{PluginName} v{PluginVersion} unloaded.");
 
+            Log = null;
             Instance = null;
         }
 

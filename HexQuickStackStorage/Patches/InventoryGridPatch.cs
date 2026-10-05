@@ -27,7 +27,7 @@ namespace HexQuickStackStorage.Patches
                 return true;
             }
 
-            if (ZInput.GetKey(Plugin.TrashModifierKey, true))
+            if (Plugin.EnableTrashFeature && ZInput.GetKey(Plugin.TrashModifierKey, true))
             {
                 ItemStateService.ToggleTrash(player, item);
                 RefreshItemStateBorders(grid);
@@ -55,12 +55,24 @@ namespace HexQuickStackStorage.Patches
 
         private static void RefreshItemStateBorders(InventoryGrid grid)
         {
-            UI.InventoryBorderRenderer.Refresh(
-                grid,
-                "HexTrashBorder",
-                Color.red,
-                TrashService.IsMarked
-            );
+            if (Plugin.EnableTrashFeature)
+            {
+                UI.InventoryBorderRenderer.Refresh(
+                    grid,
+                    "HexTrashBorder",
+                    Color.red,
+                    TrashService.IsMarked
+                );
+            }
+            else
+            {
+                UI.InventoryBorderRenderer.Refresh(
+                    grid,
+                    "HexTrashBorder",
+                    Color.red,
+                    item => false
+                );
+            }
 
             UI.InventoryBorderRenderer.Refresh(
                 grid,
