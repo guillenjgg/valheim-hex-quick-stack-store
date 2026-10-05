@@ -8,6 +8,7 @@ The mod has been designed with multiplayer compatibility in mind. ServerSync is 
 
 I've only tested on a dedicated server with one player, so I have not tested multiplayer scenarios. Any multiplayer feedback is welcome.
 
+
 ## Input Support
 
 HexQuickStackStorage is designed and tested primarily for mouse and keyboard.
@@ -44,17 +45,15 @@ Trophy auto storage can be enabled in the configuration.
 
 ### Quick Stack
 
-Click the **Q** button in your inventory or use the configured Quick Stack keyboard shortcut (default `P`).
+Click the **Q** button in your player inventory or use the configured Quick Stack keyboard shortcut (default `P`).
 
 Quick Stack searches nearby eligible containers and moves matching inventory items into them.
 
 For normal items, if a container already contains an item type, Quick Stack will fill existing stacks first and then use empty slots in that container if needed.
 
-When trophy auto storage is enabled, trophies use trophy containers as described above.
-
 ### Sort Inventory
 
-Click the **S** button in your inventory to sort your normal player inventory.
+Click the **S** button in your player inventory to sort your normal player inventory.
 
 Sorting will:
 
@@ -66,7 +65,7 @@ Sorting will:
 
 ### Sort Chests
 
-When a supported chest or container is open, click the **Sort** button beneath the container inventory to sort it.
+When a supported chest or container is open, click the **S** button next to the container "Place Stacks" button to sort it.
 
 The Sort button is only shown for supported Valheim containers. Custom container inventories provided by other mods may not support sorting.
 
@@ -138,21 +137,9 @@ The server can also lock synchronized configuration values so connected clients 
 
 Client-only settings such as keyboard shortcuts and inventory modifier keys are not synchronized.
 
-## Configuration
+## Configuration File
 
-Configuration options include:
-
-- Quick Stack search radius
-- Quick Stack keyboard shortcut
-- Container access mode
-- Automatic chest sorting
-- Trophy auto storage
-- Trash modifier key
-- Favorite modifier key
-- Delete confirmation
-- Server configuration locking
-
-The Trash and Favorite modifier keys cannot use the same key.
+`com.hex.quickstackstorage.cfg`
 
 ## Support
 
@@ -160,7 +147,7 @@ Discord support:
 
 https://discord.gg/wU2FXD94v4
 
-## Source
+## Source Code
 
 GitHub:
 

@@ -110,7 +110,11 @@ namespace HexQuickStackStorage.UI
             }
 
             CreateContainerSortButton();
-            CreateTrashButton(OnTrashClicked);
+
+            if(Plugin.EnableTrashFeature)
+            {
+                CreateTrashButton(OnTrashClicked);
+            }
         }
 
         private static Button CreateActionButton(Button template, string buttonName, string text, int index, UnityAction onClick)
@@ -191,6 +195,11 @@ namespace HexQuickStackStorage.UI
 
         private static Button CreateTrashButton(UnityAction onClick)
         {
+            if (!Plugin.EnableTrashFeature)
+            {
+                return null;
+            }
+
             Transform existing = FindChildRecursive(_inventoryGui.transform, TrashButtonName);
 
             if (existing != null)
@@ -504,6 +513,11 @@ namespace HexQuickStackStorage.UI
 
         private static void OnTrashClicked()
         {
+            if (!Plugin.EnableTrashFeature)
+            {
+                return;
+            }
+
             var player = Player.m_localPlayer;
 
             if (player == null || _inventoryGui == null)

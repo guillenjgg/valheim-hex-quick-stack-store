@@ -15,7 +15,7 @@ namespace HexQuickStackStorage
     {
         internal const string PluginGuid = "com.hex.quickstackstorage";
         private const string PluginName = "HexQuickStackStorage";
-        private const string PluginVersion = "1.4.3";
+        private const string PluginVersion = "1.4.4";
 
         private static readonly ConfigSync ConfigSync = new ConfigSync(PluginGuid)
         {
@@ -38,7 +38,8 @@ namespace HexQuickStackStorage
         private ConfigEntry<bool> _enableAutoStoreTrophies;
         private ConfigEntry<ContainerAccessModeEnum> _containerAccessMode;
         private ConfigEntry<bool> _enableDeleteConfirmation;
-        private static ConfigEntry<bool> _lockConfiguration;
+        private ConfigEntry<bool> _lockConfiguration;
+        private ConfigEntry<bool> _enableTrashFeature;
 
         private Harmony _harmonyInstance;
         private bool _isValidatingModifierKeys;
@@ -52,6 +53,7 @@ namespace HexQuickStackStorage
         internal static bool EnableAutoStoreTrophies => Instance?._enableAutoStoreTrophies != null && Instance._enableAutoStoreTrophies.Value;
         internal static ContainerAccessModeEnum ContainerAccessMode => Instance?._containerAccessMode != null ? Instance._containerAccessMode.Value : ContainerAccessModeEnum.CharacterOwned;
         internal static bool EnableDeleteConfirmation => Instance?._enableDeleteConfirmation != null && Instance._enableDeleteConfirmation.Value;
+        internal static bool EnableTrashFeature => Instance?._enableTrashFeature != null && Instance._enableTrashFeature.Value;
 
         private void Awake()
         {
@@ -132,6 +134,13 @@ namespace HexQuickStackStorage
                 "EnableDeleteConfirmation",
                 true,
                 "Enable a confirmation dialog when deleting items marked as trash."
+            );
+
+            _enableTrashFeature = Config.Bind(
+                "Inventory",
+                "EnableTrashFeature",
+                true,
+                "Enable the trash feature, allowing items to be marked as trash and deleted. If disabled the trash tab on the player inventory will be removed.. Requires game restart."
             );
 
             _trashModifierKey.SettingChanged += OnModifierKeyChanged;
@@ -218,6 +227,7 @@ namespace HexQuickStackStorage
 
             Log?.LogInfo($"{PluginName} v{PluginVersion} unloaded.");
 
+            Log = null;
             Instance = null;
         }
 

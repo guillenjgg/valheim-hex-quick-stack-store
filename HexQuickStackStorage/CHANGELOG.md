@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.4
+
+### Added
+- Configuration option to disable the Trash feature.
+
 ## v1.4.3
 
 ### Added
