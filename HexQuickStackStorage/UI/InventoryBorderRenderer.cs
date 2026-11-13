@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -15,7 +15,17 @@ namespace HexQuickStackStorage.UI
 
         internal static void Refresh(InventoryGrid grid, string borderName, Color borderColor, Func<ItemDrop.ItemData, bool> shouldShowBorder)
         {
-            if (grid == null || grid.GetInventory() == null || shouldShowBorder == null)
+            if (grid == null)
+            {
+                return;
+            }
+
+            if (grid.GetInventory() == null)
+            {
+                return;
+            }
+
+            if (shouldShowBorder == null)
             {
                 return;
             }
@@ -85,12 +95,13 @@ namespace HexQuickStackStorage.UI
             }
         }
 
-        private static GameObject CreateBorder(Transform parent,string borderName,Color borderColor)
+        private static GameObject CreateBorder(Transform parent, string borderName, Color borderColor)
         {
             GameObject border = new GameObject(borderName, typeof(RectTransform));
             RectTransform borderRect = border.GetComponent<RectTransform>();
 
             borderRect.SetParent(parent, false);
+
             borderRect.anchorMin = Vector2.zero;
             borderRect.anchorMax = Vector2.one;
             borderRect.offsetMin = Vector2.zero;
@@ -100,31 +111,22 @@ namespace HexQuickStackStorage.UI
             CreateEdge(border.transform, "Bottom", new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, BorderThickness), borderColor);
             CreateEdge(border.transform, "Left", new Vector2(0f, 0f), new Vector2(0f, 1f), Vector2.zero, new Vector2(BorderThickness, 0f), borderColor);
             CreateEdge(border.transform, "Right", new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-BorderThickness, 0f), Vector2.zero, borderColor);
-
             borderRect.SetAsLastSibling();
 
             return border;
         }
 
-        private static void CreateEdge(
-            Transform parent,
-            string name,
-            Vector2 anchorMin,
-            Vector2 anchorMax,
-            Vector2 offsetMin,
-            Vector2 offsetMax,
-            Color borderColor
-        )
+        private static void CreateEdge(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax, Color borderColor)
         {
             GameObject edge = new GameObject(name, typeof(RectTransform), typeof(Image));
             RectTransform rect = edge.GetComponent<RectTransform>();
 
             rect.SetParent(parent, false);
+
             rect.anchorMin = anchorMin;
             rect.anchorMax = anchorMax;
             rect.offsetMin = offsetMin;
             rect.offsetMax = offsetMax;
-
             Image image = edge.GetComponent<Image>();
             image.color = borderColor;
             image.raycastTarget = false;

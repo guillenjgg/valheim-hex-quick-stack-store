@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using HexQuickStackStorage.UI;
 
 namespace HexQuickStackStorage.Patches
@@ -45,7 +45,6 @@ namespace HexQuickStackStorage.Patches
             InventoryUiController.SetContainerSortButtonVisible(containerOpen);
             InventoryUiController.SetQuickStackButtonInteractable(!containerOpen);
         }
-
 
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.CloseContainer))]
         [HarmonyPostfix]

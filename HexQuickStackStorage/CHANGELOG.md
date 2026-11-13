@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.4.5
+
+### Added
+
+- Client-only **UI Layout** settings with separate X/Y sliders for the S/Q container and trash button, ranging from -500 to 500.
+- Layout changes apply immediately through Configuration Manager while the player inventory is open. Trash offsets apply when the trash feature is enabled.
+- Existing vector offsets are carried over to the new slider settings when upgrading.
+
+### Changed
+
+- Updated references for Valheim v1.0.21 and the BepInExPack dependency to 5.4.2360.
+- Grouped S/Q buttons in one container that follows the weight display.
+
+### Fixed
+
+- Inventory actions measure Valheim's player grid to follow changes in its rows and columns while excluding slots outside that grid.
+- Nearby Quick Stack requests chest access through Valheim's owner-approved stack flow before moving items, and rechecks items and access when the reply arrives.
+- S/Q buttons remain outside the weight display's hierarchy to avoid triggering its hover tooltip.
+
 ## v1.4.4
 
 ### Added

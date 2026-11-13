@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -7,6 +7,11 @@ namespace HexQuickStackStorage.UI
 {
     internal static class DialogUiController
     {
+        private const string DialogName = "dialog";
+        private const string ConfirmationMessageName = "Quit";
+        private const string ConfirmButtonName = "Button_yes";
+        private const string CancelButtonName = "Button_no";
+
         private static GameObject _deleteConfirmationDialog;
         private static Toggle _dontShowAgainToggle;
 
@@ -15,19 +20,20 @@ namespace HexQuickStackStorage.UI
             if (inventoryGui == null)
             {
                 Plugin.Log.LogWarning("InventoryGui is null. Unable to show delete confirmation.");
+
                 return;
             }
 
             if (Menu.instance == null || Menu.instance.m_logoutDialog == null)
             {
                 Plugin.Log.LogWarning("Could not find Valheim logout confirmation dialog.");
+
                 return;
             }
 
             if (_deleteConfirmationDialog == null)
             {
                 var template = Menu.instance.m_logoutDialog.gameObject;
-
                 _deleteConfirmationDialog = Object.Instantiate(template, inventoryGui.transform);
                 _deleteConfirmationDialog.name = $"{Plugin.PluginGuid}.DeleteConfirmation";
 
@@ -40,7 +46,6 @@ namespace HexQuickStackStorage.UI
             }
 
             ConfigureDeleteConfirmationActions(onConfirm);
-
             _deleteConfirmationDialog.SetActive(true);
             _deleteConfirmationDialog.transform.SetAsLastSibling();
         }
@@ -52,17 +57,18 @@ namespace HexQuickStackStorage.UI
                 return;
             }
 
-            var dialog = _deleteConfirmationDialog.transform.Find("dialog");
+            var dialog = _deleteConfirmationDialog.transform.Find(DialogName);
 
             if (dialog == null)
             {
                 Plugin.Log.LogWarning("Could not find dialog on delete confirmation.");
+
                 return;
             }
 
-            var message = dialog.Find("Quit")?.GetComponent<TMP_Text>();
-            var yesButton = dialog.Find("Button_yes")?.GetComponent<Button>();
-            var cancelButton = dialog.Find("Button_no")?.GetComponent<Button>();
+            var message = dialog.Find(ConfirmationMessageName)?.GetComponent<TMP_Text>();
+            var yesButton = dialog.Find(ConfirmButtonName)?.GetComponent<Button>();
+            var cancelButton = dialog.Find(CancelButtonName)?.GetComponent<Button>();
 
             if (message != null)
             {
@@ -77,6 +83,7 @@ namespace HexQuickStackStorage.UI
             if (cancelButton != null)
             {
                 cancelButton.onClick = new Button.ButtonClickedEvent();
+
                 SetButtonText(cancelButton.gameObject, "Cancel");
             }
 
@@ -99,19 +106,20 @@ namespace HexQuickStackStorage.UI
 
         private static void ConfigureDeleteConfirmationActions(UnityAction onConfirm)
         {
-            var dialog = _deleteConfirmationDialog.transform.Find("dialog");
+            var dialog = _deleteConfirmationDialog.transform.Find(DialogName);
 
             if (dialog == null)
             {
                 return;
             }
 
-            var yesButton = dialog.Find("Button_yes")?.GetComponent<Button>();
-            var cancelButton = dialog.Find("Button_no")?.GetComponent<Button>();
+            var yesButton = dialog.Find(ConfirmButtonName)?.GetComponent<Button>();
+            var cancelButton = dialog.Find(CancelButtonName)?.GetComponent<Button>();
 
             if (yesButton != null)
             {
                 yesButton.onClick = new Button.ButtonClickedEvent();
+
                 yesButton.onClick.AddListener(() =>
                 {
                     if (_dontShowAgainToggle != null && _dontShowAgainToggle.isOn)
@@ -127,6 +135,7 @@ namespace HexQuickStackStorage.UI
             if (cancelButton != null)
             {
                 cancelButton.onClick = new Button.ButtonClickedEvent();
+
                 cancelButton.onClick.AddListener(HideDeleteConfirmation);
             }
         }
@@ -147,6 +156,7 @@ namespace HexQuickStackStorage.UI
             {
                 label.text = text;
                 label.alignment = TextAlignmentOptions.Center;
+
                 return;
             }
 
@@ -159,12 +169,7 @@ namespace HexQuickStackStorage.UI
             }
         }
 
-        private static void CreateDontShowAgainToggle(
-            Transform dialog,
-            TMP_Text textTemplate,
-            Button yesButton,
-            Button cancelButton
-        )
+        private static void CreateDontShowAgainToggle(Transform dialog, TMP_Text textTemplate, Button yesButton, Button cancelButton)
         {
             if (_dontShowAgainToggle != null)
             {
@@ -174,14 +179,11 @@ namespace HexQuickStackStorage.UI
             if (textTemplate == null)
             {
                 Plugin.Log.LogWarning("Could not find Valheim text template for delete confirmation toggle.");
+
                 return;
             }
 
-            var toggleObject = new GameObject(
-                $"{Plugin.PluginGuid}.DontShowAgainToggle",
-                typeof(RectTransform),
-                typeof(Toggle)
-            );
+            var toggleObject = new GameObject($"{Plugin.PluginGuid}.DontShowAgainToggle", typeof(RectTransform), typeof(Toggle));
 
             toggleObject.transform.SetParent(dialog, false);
 
@@ -190,7 +192,6 @@ namespace HexQuickStackStorage.UI
             toggleRect.anchorMax = new Vector2(0.5f, 0.5f);
             toggleRect.pivot = new Vector2(0.5f, 0.5f);
             toggleRect.sizeDelta = new Vector2(290f, 30f);
-
             float buttonBottom = -80f;
 
             if (yesButton != null)
@@ -213,15 +214,9 @@ namespace HexQuickStackStorage.UI
             }
 
             toggleRect.anchoredPosition = new Vector2(0f, buttonBottom - 25f);
-
             _dontShowAgainToggle = toggleObject.GetComponent<Toggle>();
             _dontShowAgainToggle.isOn = false;
-
-            var checkboxObject = new GameObject(
-                $"{Plugin.PluginGuid}.DontShowAgainToggle.CheckboxBackground",
-                typeof(RectTransform),
-                typeof(Image)
-            );
+            var checkboxObject = new GameObject($"{Plugin.PluginGuid}.DontShowAgainToggle.CheckboxBackground", typeof(RectTransform), typeof(Image));
 
             checkboxObject.transform.SetParent(toggleObject.transform, false);
 
@@ -231,15 +226,9 @@ namespace HexQuickStackStorage.UI
             checkboxRect.pivot = new Vector2(0f, 0.5f);
             checkboxRect.anchoredPosition = Vector2.zero;
             checkboxRect.sizeDelta = new Vector2(20f, 20f);
-
             var checkboxImage = checkboxObject.GetComponent<Image>();
             checkboxImage.color = new Color(0.15f, 0.15f, 0.15f, 1f);
-
-            var checkmarkObject = new GameObject(
-                $"{Plugin.PluginGuid}.DontShowAgainToggle.Checkmark",
-                typeof(RectTransform),
-                typeof(Image)
-            );
+            var checkmarkObject = new GameObject($"{Plugin.PluginGuid}.DontShowAgainToggle.Checkmark", typeof(RectTransform), typeof(Image));
 
             checkmarkObject.transform.SetParent(checkboxObject.transform, false);
 
@@ -248,16 +237,12 @@ namespace HexQuickStackStorage.UI
             checkmarkRect.anchorMax = Vector2.one;
             checkmarkRect.offsetMin = new Vector2(4f, 4f);
             checkmarkRect.offsetMax = new Vector2(-4f, -4f);
-
             var checkmarkImage = checkmarkObject.GetComponent<Image>();
             checkmarkImage.color = Color.white;
-
             _dontShowAgainToggle.targetGraphic = checkboxImage;
             _dontShowAgainToggle.graphic = checkmarkImage;
-
             var labelObject = Object.Instantiate(textTemplate.gameObject, toggleObject.transform);
             labelObject.name = $"{Plugin.PluginGuid}.DontShowAgainToggle.Label";
-
             var labelRect = labelObject.GetComponent<RectTransform>();
 
             if (labelRect != null)

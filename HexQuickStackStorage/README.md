@@ -17,6 +17,12 @@ Gamepad/controller input is not officially supported or tested. Some UI actions 
 
 For the intended experience, use mouse and keyboard.
 
+## Player Inventory Scope
+
+Player inventory actions use the width and height of Valheim's normal player inventory grid. Changes to its rows or columns are read when an action runs, including changes made while a Quick Stack request is waiting for chest access.
+
+Dedicated equipment, consumable, ammo, and quick-slot panels outside that grid are excluded from these actions. The mod does not call other inventory mods' APIs to determine the grid size.
+
 
 ## Quick Stack Access Modes and Limitations
 
@@ -111,6 +117,8 @@ Marking an item as trash removes its favorite state.
 
 The Trash modifier key can be changed in the configuration.
 
+The trash feature can be disabled with **Inventory → EnableTrashFeature**. Changing this setting requires a game restart to add or remove the trash button. **EnableDeleteConfirmation** controls the confirmation dialog shown before deleting items.
+
 ## Favorite and Trash Storage
 
 Favorite and trash selections are stored as text files in the BepInEx config directory:
@@ -135,11 +143,28 @@ The following settings are synchronized from the server:
 
 The server can also lock synchronized configuration values so connected clients use the server's settings.
 
-Client-only settings such as keyboard shortcuts and inventory modifier keys are not synchronized.
+Client-only settings such as keyboard shortcuts, inventory modifier keys, and UI layout offsets are not synchronized.
 
 ## Configuration File
 
 `com.hex.quickstackstorage.cfg`
+
+### UI Layout
+
+Open BepInEx Configuration Manager and expand **HexQuickStackStorage → UI Layout**.
+
+| Setting | Initial value | Moves |
+| --- | --- | --- |
+| S/Q Container X Offset | 6 | Both S/Q buttons horizontally |
+| S/Q Container Y Offset | 0 | Both S/Q buttons vertically |
+| Trash Button X Offset | 0 | Trash button horizontally |
+| Trash Button Y Offset | 0 | Trash button vertically |
+
+All four sliders range from **-500 to 500**. Positive X moves right; negative X moves left. Positive Y moves up; negative Y moves down.
+
+Keep the player inventory open while dragging the sliders to see the UI move immediately. S/Q offsets adjust the container beneath the weight display; trash offsets adjust the trash button from its normal position. Trash offsets take effect only when the trash feature is enabled.
+
+Layout settings are saved locally and are not synchronized by the server. Previous vector offset values are carried over to the individual X/Y settings when upgrading.
 
 ## Support
 

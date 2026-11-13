@@ -1,10 +1,20 @@
-﻿namespace HexQuickStackStorage
+namespace HexQuickStackStorage
 {
     internal static class ItemStateService
     {
         internal static void ToggleFavorite(Player player, ItemDrop.ItemData item)
         {
-            if (player == null || item == null || item.m_shared == null)
+            if (player == null)
+            {
+                return;
+            }
+
+            if (item == null)
+            {
+                return;
+            }
+
+            if (item.m_shared == null)
             {
                 return;
             }
@@ -12,6 +22,7 @@
             if (FavoriteService.IsFavorite(item))
             {
                 FavoriteService.Unfavorite(item);
+
                 return;
             }
 
@@ -21,36 +32,36 @@
 
         internal static void ToggleTrash(Player player, ItemDrop.ItemData item)
         {
-            if (player == null || item == null || item.m_shared == null)
+            if (player == null)
             {
                 return;
             }
 
-            if (!TrashService.IsVanillaInventoryItem(player, item))
+            if (item == null)
+            {
+                return;
+            }
+
+            if (item.m_shared == null)
+            {
+                return;
+            }
+
+            if (!TrashService.IsPlayerStorageItem(player, item))
             {
                 return;
             }
 
             if (IsHotbarItem(item))
             {
-                player.Message(
-                    MessageHud.MessageType.Center,
-                    "Hotbar items cannot be marked as trash.",
-                    0,
-                    null
-                );
+                player.Message(MessageHud.MessageType.Center, "Hotbar items cannot be marked as trash.", 0, null);
 
                 return;
             }
 
             if (item.m_equipped)
             {
-                player.Message(
-                    MessageHud.MessageType.Center,
-                    "Equipped items cannot be marked as trash.",
-                    0,
-                    null
-                );
+                player.Message(MessageHud.MessageType.Center, "Equipped items cannot be marked as trash.", 0, null);
 
                 return;
             }
@@ -58,6 +69,7 @@
             if (TrashService.IsMarked(item))
             {
                 TrashService.Unmark(item);
+
                 return;
             }
 

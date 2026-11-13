@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -20,7 +20,6 @@ namespace HexQuickStackStorage
             }
 
             Collider[] colliders = Physics.OverlapSphere(player.transform.position, Plugin.SearchRadius);
-
             HashSet<Container> foundContainers = new HashSet<Container>();
 
             foreach (Collider collider in colliders)
@@ -78,10 +77,8 @@ namespace HexQuickStackStorage
             {
                 case ContainerAccessModeEnum.CharacterOwned:
                     return WasCreatedByPlayer(container, playerId);
-
                 case ContainerAccessModeEnum.Accessible:
                     return !IsWorldGeneratedChest(container) && CheckAccess(container, playerId);
-
                 default:
                     return false;
             }

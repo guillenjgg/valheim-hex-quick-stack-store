@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace HexQuickStackStorage.Services
 {
@@ -8,8 +8,11 @@ namespace HexQuickStackStorage.Services
         private static readonly MethodInfo FindFreeStackItemMethod = typeof(Inventory).GetMethod("FindFreeStackItem", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(string), typeof(int), typeof(int) }, null);
         private static readonly MethodInfo FindEmptySlotMethod = typeof(Inventory).GetMethod("FindEmptySlot", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(bool) }, null);
         private static readonly MethodInfo TopFirstMethod = typeof(Inventory).GetMethod("TopFirst", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(ItemDrop.ItemData) }, null);
-
-        private static readonly object[] ChangedArguments = { false, false };
+        private static readonly object[] ChangedArguments =
+        {
+            false,
+            false
+        };
 
         internal static void NotifyChanged(Inventory inventory)
         {
@@ -23,7 +26,17 @@ namespace HexQuickStackStorage.Services
 
         internal static ItemDrop.ItemData FindFreeStackItem(Inventory inventory, ItemDrop.ItemData item)
         {
-            if (inventory == null || item == null || FindFreeStackItemMethod == null)
+            if (inventory == null)
+            {
+                return null;
+            }
+
+            if (item == null)
+            {
+                return null;
+            }
+
+            if (FindFreeStackItemMethod == null)
             {
                 return null;
             }
@@ -33,7 +46,22 @@ namespace HexQuickStackStorage.Services
 
         internal static Vector2i FindEmptySlot(Inventory inventory, ItemDrop.ItemData item)
         {
-            if (inventory == null || item == null || FindEmptySlotMethod == null || TopFirstMethod == null)
+            if (inventory == null)
+            {
+                return new Vector2i(-1, -1);
+            }
+
+            if (item == null)
+            {
+                return new Vector2i(-1, -1);
+            }
+
+            if (FindEmptySlotMethod == null)
+            {
+                return new Vector2i(-1, -1);
+            }
+
+            if (TopFirstMethod == null)
             {
                 return new Vector2i(-1, -1);
             }

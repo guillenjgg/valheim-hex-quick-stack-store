@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using HexQuickStackStorage.Components;
 using System;
 using System.Reflection;
@@ -11,13 +11,18 @@ namespace HexQuickStackStorage.UI
 {
     internal static class InventoryUiController
     {
+        private const string PlayerInventoryWeightName = "Weight";
+        private const string PlayerInventoryArmorName = "Armor";
+        private const string WeightIconName = "weight_icon";
+        private const string WeightTextName = "weight_text";
+        private const string ActionButtonContainerName = Plugin.PluginGuid + ".ActionButtons";
         private const string SortButtonName = Plugin.PluginGuid + ".SortButton";
         private const string QuickStackButtonName = Plugin.PluginGuid + ".QuickStackButton";
         private const string ContainerSortButtonName = Plugin.PluginGuid + ".ContainerSortButton";
         private const string TrashButtonName = Plugin.PluginGuid + ".TrashButton";
-
         private const float ButtonSize = 36f;
         private const float ButtonSpacing = 4f;
+        private const int ActionButtonCount = 2;
         private const float TrashIconSize = 32f;
         private const float TrashIconXOffset = 4f;
         private const float TrashIconYOffset = 0f;
@@ -26,8 +31,12 @@ namespace HexQuickStackStorage.UI
         private static readonly FieldInfo DragItemField = AccessTools.Field(typeof(InventoryGui), "m_dragItem");
 
         private static InventoryGui _inventoryGui;
+        private static RectTransform _actionButtonContainer;
+        private static Button _sortButton;
         private static Button _quickStackButton;
         private static QuickStackTooltipComponent _quickStackTooltip;
+        private static RectTransform _trashButtonRect;
+        private static Vector2 _appliedTrashButtonOffset;
 
         internal static void Initialize(InventoryGui inventoryGui)
         {
@@ -88,15 +97,25 @@ namespace HexQuickStackStorage.UI
 
         private static void CreateButtons()
         {
-            if (_inventoryGui == null || _inventoryGui.m_player == null || _inventoryGui.m_takeAllButton == null)
+            if (_inventoryGui == null)
             {
                 return;
             }
 
+            if (_inventoryGui.m_player == null)
+            {
+                return;
+            }
+
+            if (_inventoryGui.m_takeAllButton == null)
+            {
+                return;
+            }
+
+            _actionButtonContainer = GetOrCreateActionButtonContainer();
+
             Button nativeButton = _inventoryGui.m_takeAllButton;
-
-            CreateActionButton(nativeButton, SortButtonName, "S", 0, OnSortClicked);
-
+            _sortButton = CreateActionButton(nativeButton, SortButtonName, "S", 0, OnSortClicked);
             _quickStackButton = CreateActionButton(nativeButton, QuickStackButtonName, "Q", 1, OnQuickStackClicked);
 
             if (_quickStackButton != null)
@@ -111,42 +130,96 @@ namespace HexQuickStackStorage.UI
 
             CreateContainerSortButton();
 
-            if(Plugin.EnableTrashFeature)
+            if (Plugin.EnableTrashFeature)
             {
                 CreateTrashButton(OnTrashClicked);
             }
         }
 
+        internal static void RefreshActionButtonAnchors()
+        {
+            if (_inventoryGui == null || _inventoryGui.m_player == null)
+            {
+                return;
+            }
+
+            if (!_inventoryGui.m_player.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            if (_sortButton == null || _quickStackButton == null)
+            {
+                CreateButtons();
+                SetQuickStackButtonInteractable(GetCurrentContainer() == null);
+            }
+
+            PositionActionButtonContainer();
+            PositionActionButtonIfPresent(_sortButton, 0);
+            PositionActionButtonIfPresent(_quickStackButton, 1);
+        }
+
+        private static void PositionActionButtonIfPresent(Button button, int index)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            PositionActionButton(button.gameObject, index);
+        }
+
         private static Button CreateActionButton(Button template, string buttonName, string text, int index, UnityAction onClick)
         {
-            Transform existing = _inventoryGui.m_player.transform.Find(buttonName);
+            Transform buttonParent = _actionButtonContainer;
+            Transform existing = buttonParent.Find(buttonName);
 
             if (existing != null)
             {
                 return existing.GetComponent<Button>();
             }
 
-            GameObject buttonObject = UnityEngine.Object.Instantiate(template.gameObject, _inventoryGui.m_player.transform);
+            GameObject buttonObject = UnityEngine.Object.Instantiate(template.gameObject, buttonParent);
             buttonObject.name = buttonName;
-
             Button button = buttonObject.GetComponent<Button>();
 
             if (button == null)
             {
                 UnityEngine.Object.Destroy(buttonObject);
+
                 return null;
             }
 
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(onClick);
-
             SetButtonText(buttonObject, text);
             StyleActionButton(buttonObject);
             PositionActionButton(buttonObject, index);
-
             buttonObject.SetActive(true);
 
             return button;
+        }
+
+        private static RectTransform GetOrCreateActionButtonContainer()
+        {
+            RectTransform existing = _inventoryGui.m_player.Find(ActionButtonContainerName) as RectTransform;
+
+            if (existing != null)
+            {
+                return existing;
+            }
+
+            GameObject containerObject = new GameObject(ActionButtonContainerName, typeof(RectTransform));
+            containerObject.layer = _inventoryGui.m_player.gameObject.layer;
+
+            RectTransform containerRect = containerObject.GetComponent<RectTransform>();
+            containerRect.SetParent(_inventoryGui.m_player, false);
+            containerRect.anchorMin = new Vector2(1f, 0f);
+            containerRect.anchorMax = new Vector2(1f, 0f);
+            containerRect.pivot = new Vector2(0f, 1f);
+            containerRect.sizeDelta = new Vector2(ActionButtonCount * ButtonSize + ButtonSpacing, ButtonSize);
+
+            return containerRect;
         }
 
         private static Button CreateContainerSortButton()
@@ -173,24 +246,46 @@ namespace HexQuickStackStorage.UI
 
             GameObject buttonObject = UnityEngine.Object.Instantiate(template.gameObject, parent);
             buttonObject.name = ContainerSortButtonName;
-
             Button button = buttonObject.GetComponent<Button>();
 
             if (button == null)
             {
                 UnityEngine.Object.Destroy(buttonObject);
+
                 return null;
             }
 
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(OnContainerSortClicked);
-
             SetButtonText(buttonObject, "S");
             PositionContainerSortButton(buttonObject, template.gameObject);
-
             buttonObject.SetActive(false);
 
             return button;
+        }
+
+        internal static void RefreshTrashButtonOffset()
+        {
+            if (!Plugin.EnableTrashFeature)
+            {
+                return;
+            }
+
+            if (_trashButtonRect == null)
+            {
+                return;
+            }
+
+            Vector2 configuredOffset = Plugin.TrashButtonOffset;
+
+            if (configuredOffset == _appliedTrashButtonOffset)
+            {
+                return;
+            }
+
+            Vector2 offsetChange = configuredOffset - _appliedTrashButtonOffset;
+            _trashButtonRect.anchoredPosition += offsetChange;
+            _appliedTrashButtonOffset = configuredOffset;
         }
 
         private static Button CreateTrashButton(UnityAction onClick)
@@ -207,8 +302,8 @@ namespace HexQuickStackStorage.UI
                 return existing.GetComponent<Button>();
             }
 
-            RectTransform armorTab = FindStatusTab("armor");
-            RectTransform weightTab = FindStatusTab("weight");
+            RectTransform armorTab = FindStatusTab(PlayerInventoryArmorName);
+            RectTransform weightTab = FindStatusTab(PlayerInventoryWeightName);
 
             if (armorTab == null || weightTab == null)
             {
@@ -217,11 +312,11 @@ namespace HexQuickStackStorage.UI
 
             GameObject trashObject = UnityEngine.Object.Instantiate(weightTab.gameObject, weightTab.parent);
             trashObject.name = TrashButtonName;
-
             RectTransform trashRect = trashObject.GetComponent<RectTransform>();
-
-            Transform weightIcon = trashObject.transform.Find("weight_icon");
-            Transform weightText = trashObject.transform.Find("weight_text");
+            _trashButtonRect = trashRect;
+            _appliedTrashButtonOffset = Vector2.zero;
+            Transform weightIcon = trashObject.transform.Find(WeightIconName);
+            Transform weightText = trashObject.transform.Find(WeightTextName);
 
             if (weightText != null)
             {
@@ -251,12 +346,12 @@ namespace HexQuickStackStorage.UI
 
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(onClick);
-
             PositionTrashButton(trashRect, armorTab, weightTab);
+            RefreshTrashButtonOffset();
 
             int nativeSiblingIndex = Mathf.Min(armorTab.GetSiblingIndex(), weightTab.GetSiblingIndex());
-            trashRect.SetSiblingIndex(nativeSiblingIndex);
 
+            trashRect.SetSiblingIndex(nativeSiblingIndex);
             trashObject.SetActive(true);
 
             return button;
@@ -268,31 +363,26 @@ namespace HexQuickStackStorage.UI
             RectTransform iconRootRect = iconRoot.GetComponent<RectTransform>();
 
             iconRootRect.SetParent(parent, false);
+
             iconRootRect.anchorMin = new Vector2(0.5f, 0.5f);
             iconRootRect.anchorMax = new Vector2(0.5f, 0.5f);
             iconRootRect.pivot = new Vector2(0.5f, 0.5f);
             iconRootRect.sizeDelta = new Vector2(TrashIconSize, TrashIconSize);
             iconRootRect.anchoredPosition = new Vector2(TrashIconXOffset, TrashIconYOffset);
-
             GameObject body = CreateIconPart(iconRoot.transform, $"{Plugin.PluginGuid}.TrashIcon.Body");
             RectTransform bodyRect = body.GetComponent<RectTransform>();
-
             bodyRect.anchorMin = new Vector2(0.20f, 0.10f);
             bodyRect.anchorMax = new Vector2(0.80f, 0.70f);
             bodyRect.offsetMin = Vector2.zero;
             bodyRect.offsetMax = Vector2.zero;
-
             GameObject lid = CreateIconPart(iconRoot.transform, $"{Plugin.PluginGuid}.TrashIcon.Lid");
             RectTransform lidRect = lid.GetComponent<RectTransform>();
-
             lidRect.anchorMin = new Vector2(0.10f, 0.74f);
             lidRect.anchorMax = new Vector2(0.90f, 0.84f);
             lidRect.offsetMin = Vector2.zero;
             lidRect.offsetMax = Vector2.zero;
-
             GameObject handle = CreateIconPart(iconRoot.transform, $"{Plugin.PluginGuid}.TrashIcon.Handle");
             RectTransform handleRect = handle.GetComponent<RectTransform>();
-
             handleRect.anchorMin = new Vector2(0.36f, 0.85f);
             handleRect.anchorMax = new Vector2(0.64f, 0.96f);
             handleRect.offsetMin = Vector2.zero;
@@ -323,10 +413,10 @@ namespace HexQuickStackStorage.UI
             RectTransform rect = slot.GetComponent<RectTransform>();
 
             rect.SetParent(parent, false);
+
             rect.anchorMin = new Vector2(x, 0.18f);
             rect.anchorMax = new Vector2(x, 0.60f);
             rect.sizeDelta = new Vector2(2f, 0f);
-
             Image image = slot.GetComponent<Image>();
             image.color = new Color(0.20f, 0.20f, 0.20f, 1f);
             image.raycastTarget = false;
@@ -334,7 +424,17 @@ namespace HexQuickStackStorage.UI
 
         private static void PositionTrashButton(RectTransform trashRect, RectTransform armorRect, RectTransform weightRect)
         {
-            if (trashRect == null || armorRect == null || weightRect == null)
+            if (trashRect == null)
+            {
+                return;
+            }
+
+            if (armorRect == null)
+            {
+                return;
+            }
+
+            if (weightRect == null)
             {
                 return;
             }
@@ -343,7 +443,6 @@ namespace HexQuickStackStorage.UI
             trashRect.anchorMax = weightRect.anchorMax;
             trashRect.pivot = weightRect.pivot;
             trashRect.sizeDelta = weightRect.sizeDelta;
-
             Vector3 middleWorldPosition = (armorRect.position + weightRect.position) * 0.5f;
             trashRect.position = middleWorldPosition;
         }
@@ -362,13 +461,8 @@ namespace HexQuickStackStorage.UI
             buttonRect.anchorMax = templateRect.anchorMax;
             buttonRect.pivot = new Vector2(0.5f, 0.5f);
             buttonRect.sizeDelta = new Vector2(ButtonSize, ButtonSize);
-
             float templateLeft = templateRect.anchoredPosition.x - (templateRect.rect.width * templateRect.pivot.x);
-
-            buttonRect.anchoredPosition = new Vector2(
-                templateLeft - ButtonSpacing - (ButtonSize * 0.5f),
-                templateRect.anchoredPosition.y
-            );
+            buttonRect.anchoredPosition = new Vector2(templateLeft - ButtonSpacing - (ButtonSize * 0.5f), templateRect.anchoredPosition.y);
         }
 
         private static RectTransform FindStatusTab(string namePart)
@@ -424,6 +518,7 @@ namespace HexQuickStackStorage.UI
             {
                 label.text = text;
                 label.alignment = TextAlignmentOptions.Center;
+
                 return;
             }
 
@@ -446,7 +541,6 @@ namespace HexQuickStackStorage.UI
             }
 
             rectTransform.sizeDelta = new Vector2(ButtonSize, ButtonSize);
-
             Image image = buttonObject.GetComponent<Image>();
 
             if (image != null)
@@ -458,21 +552,59 @@ namespace HexQuickStackStorage.UI
         private static void PositionActionButton(GameObject buttonObject, int index)
         {
             RectTransform rectTransform = buttonObject.GetComponent<RectTransform>();
-            RectTransform playerRectTransform = _inventoryGui.m_player.GetComponent<RectTransform>();
 
-            if (rectTransform == null || playerRectTransform == null)
+            if (rectTransform == null)
             {
                 return;
             }
 
+            float buttonSize = _actionButtonContainer.rect.height;
             rectTransform.anchorMin = new Vector2(0f, 1f);
             rectTransform.anchorMax = new Vector2(0f, 1f);
             rectTransform.pivot = new Vector2(0f, 1f);
+            rectTransform.localScale = Vector3.one;
+            rectTransform.sizeDelta = new Vector2(buttonSize, buttonSize);
+            rectTransform.anchoredPosition = new Vector2(index * (buttonSize + ButtonSpacing), 0f);
+        }
 
-            float x = playerRectTransform.rect.width + 8f + (index * (ButtonSize + ButtonSpacing));
-            float y = -playerRectTransform.rect.height + ButtonSize;
+        private static void PositionActionButtonContainer()
+        {
+            if (_actionButtonContainer == null)
+            {
+                return;
+            }
 
-            rectTransform.anchoredPosition = new Vector2(x, y);
+            RectTransform weightDisplay = _inventoryGui.m_player.Find(PlayerInventoryWeightName) as RectTransform;
+
+            if (weightDisplay == null)
+            {
+                return;
+            }
+
+            float availableButtonWidth = (weightDisplay.rect.width - ButtonSpacing) / ActionButtonCount;
+            float buttonSize = Mathf.Min(ButtonSize, availableButtonWidth);
+
+            if (buttonSize <= 0f)
+            {
+                return;
+            }
+
+            float rowWidth = ActionButtonCount * buttonSize + ButtonSpacing;
+            Vector2 containerOffset = Plugin.ActionButtonContainerOffset;
+            float left = weightDisplay.rect.center.x - rowWidth * 0.5f + containerOffset.x;
+            float top = weightDisplay.rect.yMin - ButtonSpacing + containerOffset.y;
+            Vector3 parentScale = _inventoryGui.m_player.lossyScale;
+            Vector3 weightScale = weightDisplay.lossyScale;
+
+            if (parentScale.x == 0f || parentScale.y == 0f)
+            {
+                return;
+            }
+
+            // A sibling container avoids triggering the weight display's hover handlers.
+            _actionButtonContainer.sizeDelta = new Vector2(rowWidth, buttonSize);
+            _actionButtonContainer.localScale = new Vector3(weightScale.x / parentScale.x, weightScale.y / parentScale.y, 1f);
+            _actionButtonContainer.position = weightDisplay.TransformPoint(new Vector3(left, top, 0f));
         }
 
         private static void OnSortClicked()
@@ -540,6 +672,7 @@ namespace HexQuickStackStorage.UI
             if (Plugin.EnableDeleteConfirmation)
             {
                 DialogUiController.ShowDeleteConfirmation(_inventoryGui, deleteAction);
+
                 return;
             }
 
