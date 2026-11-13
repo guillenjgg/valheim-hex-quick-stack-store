@@ -1,4 +1,4 @@
-﻿using HexQuickStackStorage.Services;
+using HexQuickStackStorage.Services;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -7,60 +7,174 @@ namespace HexQuickStackStorage
 {
     internal static class QuickStackService
     {
-        private const int DefaultVanillaInventoryRows = 4;
+        private const float StackRequestTimeout = 10f;
 
         private static readonly FieldInfo ContainerNViewField = typeof(Container).GetField("m_nview", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        private static readonly Dictionary<Container, StackRequest> PendingRequests = new Dictionary<Container, StackRequest>();
+
+        private sealed class StackRequest
+        {
+            internal Player Player;
+            internal Inventory Inventory;
+            internal float StartedAt;
+        }
 
         internal static void QuickStack(Player player)
         {
-            if (player == null)
+            List<Container> expiredRequests = new List<Container>();
+
+            foreach (var request in PendingRequests)
             {
-                return;
-            }
-
-            Inventory playerInventory = player.GetInventory();
-
-            if (playerInventory == null)
-            {
-                return;
-            }
-
-            int vanillaHeight = GetVanillaInventoryHeight(player);
-
-            List<ItemDrop.ItemData> quickStackableItems = GetQuickStackableItems(player, playerInventory, vanillaHeight);
-
-            if (quickStackableItems.Count == 0)
-            {
-                return;
-            }
-
-            List<Container> containers = ContainerService.GetNearbyContainers(player);
-
-            bool itemsMoved = false;
-
-            foreach (Container container in containers)
-            {
-                if (QuickStackIntoContainer(container, quickStackableItems, playerInventory, false))
+                if (request.Key == null)
                 {
-                    itemsMoved = true;
+                    expiredRequests.Add(request.Key);
+
+                    continue;
                 }
 
-                if (quickStackableItems.Count == 0)
+                if (request.Value.Player != player)
                 {
-                    break;
+                    expiredRequests.Add(request.Key);
+
+                    continue;
+                }
+
+                float requestAge = Time.realtimeSinceStartup - request.Value.StartedAt;
+
+                if (requestAge >= StackRequestTimeout)
+                {
+                    expiredRequests.Add(request.Key);
                 }
             }
 
-            if (itemsMoved)
+            foreach (Container expired in expiredRequests)
             {
-                player.Message(
-                    MessageHud.MessageType.TopLeft,
-                    "Items auto stacked",
-                    0,
-                    null,
-                    false
-                );
+                PendingRequests.Remove(expired);
             }
+
+            Inventory inventory = player?.GetInventory();
+
+            if (inventory == null)
+            {
+                return;
+            }
+
+            if (GetQuickStackableItems(player, inventory).Count == 0)
+            {
+                return;
+            }
+
+            foreach (Container container in ContainerService.GetNearbyContainers(player))
+            {
+                ZNetView nview = GetContainerNView(container);
+
+                if (nview == null)
+                {
+                    continue;
+                }
+
+                if (!nview.IsValid())
+                {
+                    continue;
+                }
+
+                if (IsContainerInUse(container, nview))
+                {
+                    continue;
+                }
+
+                if (PendingRequests.TryGetValue(container, out StackRequest pending))
+                {
+                    float pendingRequestAge = Time.realtimeSinceStartup - pending.StartedAt;
+
+                    if (pending.Player == player && pendingRequestAge < StackRequestTimeout)
+                    {
+                        continue;
+                    }
+                }
+
+                PendingRequests[container] = new StackRequest
+                {
+                    Player = player,
+                    Inventory = inventory,
+                    StartedAt = Time.realtimeSinceStartup
+                };
+                // The current owner checks access and transfers ownership before replying.
+                container.StackAll();
+            }
+        }
+
+        internal static bool CompleteNearbyStackRequest(Container container, bool granted)
+        {
+            if (!PendingRequests.TryGetValue(container, out StackRequest request))
+            {
+                return false;
+            }
+
+            PendingRequests.Remove(container);
+
+            if (!granted)
+            {
+                return true;
+            }
+
+            Player player = Player.m_localPlayer;
+
+            if (player == null || player != request.Player)
+            {
+                return true;
+            }
+
+            if (player.GetInventory() != request.Inventory)
+            {
+                return true;
+            }
+
+            float requestAge = Time.realtimeSinceStartup - request.StartedAt;
+
+            if (requestAge >= StackRequestTimeout)
+            {
+                return true;
+            }
+
+            ZNetView nview = GetContainerNView(container);
+
+            if (nview == null || !nview.IsValid())
+            {
+                return true;
+            }
+
+            if (!nview.IsOwner())
+            {
+                return true;
+            }
+
+            if (IsContainerInUse(container, nview))
+            {
+                return true;
+            }
+
+            if (!ContainerService.CanUseContainer(container))
+            {
+                return true;
+            }
+
+            float distanceToContainer = Vector3.Distance(player.transform.position, container.transform.position);
+
+            if (distanceToContainer > Plugin.SearchRadius)
+            {
+                return true;
+            }
+
+            // Rebuild the item list now: the player may have moved, equipped, or favorited items while waiting.
+            QuickStack(player, container);
+
+            return true;
+        }
+
+        internal static void ClearPendingRequests()
+        {
+            PendingRequests.Clear();
         }
 
         internal static void QuickStack(Player player, Container container)
@@ -77,89 +191,67 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            int vanillaHeight = GetVanillaInventoryHeight(player);
-
-            List<ItemDrop.ItemData> quickStackableItems = GetQuickStackableItems(player, playerInventory, vanillaHeight);
+            List<ItemDrop.ItemData> quickStackableItems = GetQuickStackableItems(player, playerInventory);
 
             if (quickStackableItems.Count == 0)
             {
                 return;
             }
 
-            if (QuickStackIntoContainer(container, quickStackableItems, playerInventory, true))
+            if (QuickStackIntoContainer(container, quickStackableItems, playerInventory))
             {
-                player.Message(
-                    MessageHud.MessageType.TopLeft,
-                    "Items auto stacked",
-                    0,
-                    null,
-                    false
-                );
+                player.Message(MessageHud.MessageType.TopLeft, "Items auto stacked", 0, null, false);
             }
         }
 
-        private static bool QuickStackIntoContainer(Container container, List<ItemDrop.ItemData> quickStackableItems, Inventory playerInventory, bool allowInUse)
+        private static bool QuickStackIntoContainer(Container container, List<ItemDrop.ItemData> quickStackableItems, Inventory playerInventory)
         {
-            if (container == null)
-            {
-                return false;
-            }
-
             ZNetView nview = GetContainerNView(container);
 
-            if (nview == null || !nview.IsValid())
+            if (nview == null)
             {
                 return false;
             }
 
-            if (!allowInUse && IsContainerInUse(container, nview))
+            if (!nview.IsValid())
             {
                 return false;
             }
 
-            nview.ClaimOwnership();
+            if (!nview.IsOwner())
+            {
+                return false;
+            }
 
             Inventory containerInventory = container.GetInventory();
 
-            if (containerInventory == null)
-            {
-                return false;
-            }
-
-            bool setInUse = !allowInUse;
-
-            if (setInUse)
-            {
-                SetContainerInUse(nview, true);
-            }
-
-            try
-            {
-                return QuickStackItems(quickStackableItems, playerInventory, containerInventory);
-            }
-            finally
-            {
-                if (setInUse)
-                {
-                    SetContainerInUse(nview, false);
-                }
-            }
+            return containerInventory != null && QuickStackItems(quickStackableItems, playerInventory, containerInventory);
         }
 
-        private static List<ItemDrop.ItemData> GetQuickStackableItems(Player player, Inventory playerInventory, int vanillaHeight)
+        private static List<ItemDrop.ItemData> GetQuickStackableItems(Player player, Inventory playerInventory)
         {
             var items = new List<ItemDrop.ItemData>();
 
+            if (!PlayerInventoryService.TryGetStorageSize(player, out int storageWidth, out int storageHeight))
+            {
+                return items;
+            }
+
             foreach (ItemDrop.ItemData item in playerInventory.GetAllItems())
             {
-                if (item == null)
+                if (item == null || item.m_shared == null)
                 {
                     continue;
                 }
 
-                var isItemOutsideVanillaInventoryArea = item.m_gridPos.y < 0 || item.m_gridPos.y >= vanillaHeight;
+                if (item.m_gridPos.x < 0 || item.m_gridPos.x >= storageWidth)
+                {
+                    continue;
+                }
 
-                if (isItemOutsideVanillaInventoryArea)
+                var isItemOutsideStorageArea = item.m_gridPos.y < 0 || item.m_gridPos.y >= storageHeight;
+
+                if (isItemOutsideStorageArea)
                 {
                     continue;
                 }
@@ -201,15 +293,13 @@ namespace HexQuickStackStorage
                 if (item == null)
                 {
                     quickStackableItems.RemoveAt(i);
+
                     continue;
                 }
 
                 bool isTrophy = IsTrophy(item);
                 bool containsMatchingItem = containerInventory.ContainsItemByName(item.m_shared.m_name);
-
-                bool containsTrophy = isTrophy && containerInventory
-                    .GetAllItems()
-                    .Exists(IsTrophy);
+                bool containsTrophy = isTrophy && containerInventory.GetAllItems().Exists(IsTrophy);
 
                 if (!containsMatchingItem && !containsTrophy)
                 {
@@ -227,7 +317,6 @@ namespace HexQuickStackStorage
 
                     int availableStackSpace = containerItem.m_shared.m_maxStackSize - containerItem.m_stack;
                     int amountToMove = Mathf.Min(item.m_stack, availableStackSpace);
-
                     containerItem.m_stack += amountToMove;
                     item.m_stack -= amountToMove;
                     itemsMoved = true;
@@ -243,7 +332,6 @@ namespace HexQuickStackStorage
                     }
 
                     int amountToMove = Mathf.Min(item.m_stack, item.m_shared.m_maxStackSize);
-
                     ItemDrop.ItemData newStack = item.Clone();
                     newStack.m_stack = amountToMove;
                     newStack.m_gridPos = emptySlot;
@@ -295,31 +383,6 @@ namespace HexQuickStackStorage
             }
 
             return zdo.GetInt(ZDOVars.s_inUse, 0) == 1;
-        }
-
-        private static void SetContainerInUse(ZNetView nview, bool isInUse)
-        {
-            ZDO zdo = nview.GetZDO();
-
-            if (zdo == null)
-            {
-                return;
-            }
-
-            zdo.Set(ZDOVars.s_inUse, isInUse ? 1 : 0);
-            ZDOMan.instance.ForceSendZDO(ZNet.GetUID(), zdo.m_uid);
-        }
-
-        private static int GetVanillaInventoryHeight(Player player)
-        {
-            var inventoryRows = player.TryGetUniqueKeyValue(Player.InventoryRowsKey, out string value);
-
-            if (inventoryRows && int.TryParse(value, out int rows))
-            {
-                return Mathf.Clamp(rows, 0, 9);
-            }
-
-            return DefaultVanillaInventoryRows;
         }
 
         private static bool IsTrophy(ItemDrop.ItemData item)

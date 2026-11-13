@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -78,8 +78,8 @@ namespace HexQuickStackStorage
             Directory.CreateDirectory(BepInEx.Paths.ConfigPath);
 
             List<string> itemNames = new List<string>(FavoriteItemNames);
-            itemNames.Sort(StringComparer.Ordinal);
 
+            itemNames.Sort(StringComparer.Ordinal);
             File.WriteAllLines(FavoriteFilePath, itemNames);
         }
     }

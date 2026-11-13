@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using UnityEngine;
 
 namespace HexQuickStackStorage.Patches
@@ -6,13 +6,26 @@ namespace HexQuickStackStorage.Patches
     [HarmonyPatch]
     internal static class InventoryGridPatch
     {
+        private const string TrashBorderName = "HexTrashBorder";
+        private const string FavoriteBorderName = "HexFavoriteBorder";
+
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.OnRightClickItem))]
         [HarmonyPrefix]
         private static bool OnRightClickItemPrefix(InventoryGrid grid, ItemDrop.ItemData item)
         {
             Player player = Player.m_localPlayer;
 
-            if (player == null || grid == null || item == null)
+            if (player == null)
+            {
+                return true;
+            }
+
+            if (grid == null)
+            {
+                return true;
+            }
+
+            if (item == null)
             {
                 return true;
             }
@@ -22,7 +35,7 @@ namespace HexQuickStackStorage.Patches
                 return true;
             }
 
-            if (!TrashService.IsVanillaInventoryItem(player, item))
+            if (!TrashService.IsPlayerStorageItem(player, item))
             {
                 return true;
             }
@@ -57,29 +70,14 @@ namespace HexQuickStackStorage.Patches
         {
             if (Plugin.EnableTrashFeature)
             {
-                UI.InventoryBorderRenderer.Refresh(
-                    grid,
-                    "HexTrashBorder",
-                    Color.red,
-                    TrashService.IsMarked
-                );
+                UI.InventoryBorderRenderer.Refresh(grid, TrashBorderName, Color.red, TrashService.IsMarked);
             }
             else
             {
-                UI.InventoryBorderRenderer.Refresh(
-                    grid,
-                    "HexTrashBorder",
-                    Color.red,
-                    item => false
-                );
+                UI.InventoryBorderRenderer.Refresh(grid, TrashBorderName, Color.red, item => false);
             }
 
-            UI.InventoryBorderRenderer.Refresh(
-                grid,
-                "HexFavoriteBorder",
-                new Color(1f, 0.75f, 0f),
-                FavoriteService.IsFavorite
-            );
+            UI.InventoryBorderRenderer.Refresh(grid, FavoriteBorderName, new Color(1f, 0.75f, 0f), FavoriteService.IsFavorite);
         }
     }
 }

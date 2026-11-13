@@ -1,4 +1,4 @@
-﻿namespace HexQuickStackStorage
+namespace HexQuickStackStorage
 {
     internal enum ContainerAccessModeEnum
     {

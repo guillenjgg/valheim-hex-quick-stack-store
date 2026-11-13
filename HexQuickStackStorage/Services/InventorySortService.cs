@@ -1,4 +1,4 @@
-﻿using HexQuickStackStorage.Services;
+using HexQuickStackStorage.Services;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,9 +23,12 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            int vanillaHeight = GetVanillaInventoryHeight(player);
+            if (!PlayerInventoryService.TryGetStorageSize(player, out int width, out int height))
+            {
+                return;
+            }
 
-            Sort(inventory, vanillaHeight, true);
+            Sort(inventory, width, height, true);
         }
 
         internal static void SortContainer(Container container)
@@ -42,10 +45,10 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            Sort(inventory, inventory.GetHeight(), false);
+            Sort(inventory, inventory.GetWidth(), inventory.GetHeight(), false);
         }
 
-        private static void Sort(Inventory inventory, int validHeight, bool isPlayerInventory)
+        private static void Sort(Inventory inventory, int width, int validHeight, bool isPlayerInventory)
         {
             List<ItemDrop.ItemData> allItems = inventory.GetAllItems();
 
@@ -53,8 +56,6 @@ namespace HexQuickStackStorage
             {
                 return;
             }
-
-            int width = inventory.GetWidth();
 
             if (width <= 0 || validHeight <= 0)
             {
@@ -79,18 +80,21 @@ namespace HexQuickStackStorage
                 if (isPlayerInventory && item.m_equipped)
                 {
                     reservedSlots.Add((item.m_gridPos.x, item.m_gridPos.y));
+
                     continue;
                 }
 
                 if (isPlayerInventory && ItemStateService.IsHotbarItem(item))
                 {
                     reservedSlots.Add((item.m_gridPos.x, item.m_gridPos.y));
+
                     continue;
                 }
 
                 if (isPlayerInventory && FavoriteService.IsFavorite(item))
                 {
                     reservedSlots.Add((item.m_gridPos.x, item.m_gridPos.y));
+
                     continue;
                 }
 
@@ -98,9 +102,7 @@ namespace HexQuickStackStorage
             }
 
             itemsToSort.Sort(CompareItems);
-
             ConsolidateStacks(inventory, itemsToSort);
-
             itemsToSort.Sort(CompareItems);
 
             int itemIndex = 0;
@@ -117,6 +119,7 @@ namespace HexQuickStackStorage
 
                     ItemDrop.ItemData item = itemsToSort[itemIndex];
                     item.m_gridPos = new Vector2i(x, y);
+
                     itemIndex++;
                 }
             }
@@ -130,7 +133,17 @@ namespace HexQuickStackStorage
             {
                 ItemDrop.ItemData targetItem = items[i];
 
-                if (targetItem == null || targetItem.m_shared == null || targetItem.m_shared.m_maxStackSize <= 1)
+                if (targetItem == null)
+                {
+                    continue;
+                }
+
+                if (targetItem.m_shared == null)
+                {
+                    continue;
+                }
+
+                if (targetItem.m_shared.m_maxStackSize <= 1)
                 {
                     continue;
                 }
@@ -142,6 +155,7 @@ namespace HexQuickStackStorage
                     if (!CanStackTogether(targetItem, sourceItem))
                     {
                         j++;
+
                         continue;
                     }
 
@@ -153,7 +167,6 @@ namespace HexQuickStackStorage
                     }
 
                     int amountToMove = Math.Min(availableSpace, sourceItem.m_stack);
-
                     targetItem.m_stack += amountToMove;
                     sourceItem.m_stack -= amountToMove;
 
@@ -161,6 +174,7 @@ namespace HexQuickStackStorage
                     {
                         inventory.RemoveItem(sourceItem);
                         items.RemoveAt(j);
+
                         continue;
                     }
 
@@ -171,7 +185,22 @@ namespace HexQuickStackStorage
 
         private static bool CanStackTogether(ItemDrop.ItemData targetItem, ItemDrop.ItemData sourceItem)
         {
-            if (targetItem == null || sourceItem == null || targetItem.m_shared == null || sourceItem.m_shared == null)
+            if (targetItem == null)
+            {
+                return false;
+            }
+
+            if (sourceItem == null)
+            {
+                return false;
+            }
+
+            if (targetItem.m_shared == null)
+            {
+                return false;
+            }
+
+            if (sourceItem.m_shared == null)
             {
                 return false;
             }
@@ -199,23 +228,9 @@ namespace HexQuickStackStorage
             return targetItem.m_stack < targetItem.m_shared.m_maxStackSize;
         }
 
-        private static int GetVanillaInventoryHeight(Player player)
-        {
-            if (player.TryGetUniqueKeyValue(Player.InventoryRowsKey, out string value) &&
-                int.TryParse(value, out int rows))
-            {
-                return Mathf.Clamp(rows, 0, 9);
-            }
-
-            return 4;
-        }
-
         private static bool IsPositionWithinBounds(Vector2i position, int width, int height)
         {
-            return position.x >= 0 &&
-                   position.x < width &&
-                   position.y >= 0 &&
-                   position.y < height;
+            return position.x >= 0 && position.x < width && position.y >= 0 && position.y < height;
         }
 
         private static int CompareItems(ItemDrop.ItemData firstItem, ItemDrop.ItemData secondItem)
@@ -227,11 +242,7 @@ namespace HexQuickStackStorage
                 return result;
             }
 
-            result = string.Compare(
-                firstItem.m_shared.m_name,
-                secondItem.m_shared.m_name,
-                StringComparison.Ordinal
-            );
+            result = string.Compare(firstItem.m_shared.m_name, secondItem.m_shared.m_name, StringComparison.Ordinal);
 
             if (result != 0)
             {

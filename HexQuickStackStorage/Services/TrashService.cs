@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+using HarmonyLib;
+using HexQuickStackStorage.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +13,6 @@ namespace HexQuickStackStorage
         private const string JunkFileName = "HexQuickStackStorage.junk.txt";
 
         private static readonly HashSet<string> JunkItemNames = new HashSet<string>(StringComparer.Ordinal);
-
         private static readonly FieldInfo DragItemField = AccessTools.Field(typeof(InventoryGui), "m_dragItem");
         private static readonly FieldInfo DragInventoryField = AccessTools.Field(typeof(InventoryGui), "m_dragInventory");
         private static readonly FieldInfo DragAmountField = AccessTools.Field(typeof(InventoryGui), "m_dragAmount");
@@ -83,7 +83,7 @@ namespace HexQuickStackStorage
                 return;
             }
 
-            if (!IsVanillaInventoryItem(player, item))
+            if (!IsPlayerStorageItem(player, item))
             {
                 return;
             }
@@ -91,6 +91,7 @@ namespace HexQuickStackStorage
             if (!ItemStateService.CanDelete(item))
             {
                 ShowProtectedItemMessage(player);
+
                 return;
             }
 
@@ -103,7 +104,6 @@ namespace HexQuickStackStorage
             }
 
             SetupDragItemMethod?.Invoke(inventoryGui, new object[] { null, null, 1 });
-
             ShowItemsDeletedMessage(player);
         }
 
@@ -137,7 +137,7 @@ namespace HexQuickStackStorage
                     continue;
                 }
 
-                if (!IsVanillaInventoryItem(player, item))
+                if (!IsPlayerStorageItem(player, item))
                 {
                     continue;
                 }
@@ -145,6 +145,7 @@ namespace HexQuickStackStorage
                 if (!ItemStateService.CanDelete(item))
                 {
                     protectedItemSkipped = true;
+
                     continue;
                 }
 
@@ -165,26 +166,14 @@ namespace HexQuickStackStorage
             }
         }
 
-        internal static bool IsVanillaInventoryItem(Player player, ItemDrop.ItemData item)
+        internal static bool IsPlayerStorageItem(Player player, ItemDrop.ItemData item)
         {
             if (player == null || item == null)
             {
                 return false;
             }
 
-            int vanillaHeight = GetVanillaInventoryHeight(player);
-
-            return item.m_gridPos.y >= 0 && item.m_gridPos.y < vanillaHeight;
-        }
-
-        private static int GetVanillaInventoryHeight(Player player)
-        {
-            if (player.TryGetUniqueKeyValue(Player.InventoryRowsKey, out string value) && int.TryParse(value, out int rows))
-            {
-                return Mathf.Clamp(rows, 0, 9);
-            }
-
-            return 4;
+            return PlayerInventoryService.IsStorageItem(player, item);
         }
 
         private static void LoadJunkItems()
@@ -212,30 +201,19 @@ namespace HexQuickStackStorage
             Directory.CreateDirectory(BepInEx.Paths.ConfigPath);
 
             List<string> itemNames = new List<string>(JunkItemNames);
-            itemNames.Sort(StringComparer.Ordinal);
 
+            itemNames.Sort(StringComparer.Ordinal);
             File.WriteAllLines(JunkFilePath, itemNames);
         }
 
         private static void ShowItemsDeletedMessage(Player player)
         {
-            player.Message(
-                MessageHud.MessageType.Center,
-                "Items Deleted",
-                0,
-                null,
-                false
-            );
+            player.Message(MessageHud.MessageType.Center, "Items Deleted", 0, null, false);
         }
 
         private static void ShowProtectedItemMessage(Player player)
         {
-            player.Message(
-                MessageHud.MessageType.Center,
-                "Can't delete equipped, hotbar, or favorited items.",
-                0,
-                null
-            );
+            player.Message(MessageHud.MessageType.Center, "Can't delete equipped, hotbar, or favorited items.", 0, null);
         }
     }
 }

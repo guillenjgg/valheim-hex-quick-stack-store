@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 
 namespace HexQuickStackStorage.Patches
 {
@@ -26,9 +26,20 @@ namespace HexQuickStackStorage.Patches
         [HarmonyPrefix]
         private static bool RPC_StackResponsePrefix(Container __instance, bool granted)
         {
+            if (QuickStackService.CompleteNearbyStackRequest(__instance, granted))
+            {
+                return false;
+            }
+
             if (!granted)
             {
                 return true;
+            }
+
+            // Ignore untracked or delayed replies unless this chest is currently open.
+            if (UI.InventoryUiController.GetCurrentContainer() != __instance)
+            {
+                return false;
             }
 
             Player player = Player.m_localPlayer;
